@@ -2514,13 +2514,13 @@ int priv_driver_get_dbg_level(IN struct net_device *prNetDev, IN char *pcCommand
 		if (wlanGetDebugLevel(u4DbgIdx, &u4DbgMask) == WLAN_STATUS_SUCCESS) {
 			fgIsCmdAccept = TRUE;
 			i4BytesWritten =
-			    snprintf(pcCommand, i4TotalLen,
+			    scnprintf(pcCommand, i4TotalLen,
 				     "Get DBG module[%lu] log level => [0x%02x]!", u4DbgIdx, (UINT_8) u4DbgMask);
 		}
 	}
 
 	if (!fgIsCmdAccept)
-		i4BytesWritten = snprintf(pcCommand, i4TotalLen, "Get DBG module log level failed!");
+		i4BytesWritten = scnprintf(pcCommand, i4TotalLen, "Get DBG module log level failed!");
 
 	return i4BytesWritten;
 
@@ -2562,7 +2562,7 @@ static int priv_driver_set_eeprom_mode(IN struct net_device *prNetDev, IN char *
 		}
 
 		i4BytesWritten =
-			snprintf(pcCommand, i4TotalLen, "Switch eeprom source as %s",
+			scnprintf(pcCommand, i4TotalLen, "Switch eeprom source as %s",
 				(arg == EFUSE_MODE) ? "Efuse" : "Buffer Bin");
 	}
 
@@ -2640,7 +2640,7 @@ static int priv_driver_set_efuse_buffer_mode(IN struct net_device *prNetDev, IN 
 			   &u4BufLen);
 
 	i4BytesWritten =
-		snprintf(pcCommand, i4TotalLen, "set buffer mode %s",
+		scnprintf(pcCommand, i4TotalLen, "set buffer mode %s",
 			 (rStatus == WLAN_STATUS_SUCCESS) ? "success" : "fail");
 out:
 	if (pucConfigBuf)
@@ -3793,7 +3793,7 @@ static int priv_driver_coex_ctrl(IN struct net_device *prNetDev, IN char *pcComm
 			prCmdCoexIsoDetect = (struct CMD_COEX_ISO_DETECT *) rCmdCoexCtrl.aucBuffer;
 
 			/* Set Return i4BytesWritten Value */
-			u4Offset = snprintf(pcCommand, i4TotalLen, "%d",
+			u4Offset = scnprintf(pcCommand, i4TotalLen, "%d",
 				prCmdCoexIsoDetect->u4Isolation);
 			DBGLOG(REQ, INFO, "Isolation: %d\n", prCmdCoexIsoDetect->u4Isolation);
 			break;
@@ -3824,7 +3824,7 @@ static int priv_driver_coex_ctrl(IN struct net_device *prNetDev, IN char *pcComm
 				/* Find Coex Info Cmd Id from priv_driver_coex_info_table[] */
 				for (ucTblIdx = 0; ucTblIdx < ucCoexTblSize; ucTblIdx++) {
 					if (u2CoexInfoId == coex_ref_table[ucTblIdx].ucCoexInfoId) {
-						u4Offset += snprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
+						u4Offset += scnprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
 							"\n%-25s:", coex_ref_table[ucTblIdx].cContent);
 						break;
 					}
@@ -3832,35 +3832,35 @@ static int priv_driver_coex_ctrl(IN struct net_device *prNetDev, IN char *pcComm
 
 				/* If not found in priv_driver_coex_info_table[], show Unknown Id */
 				if (ucTblIdx == ucCoexTblSize) {
-					u4Offset += snprintf(pcCommand + u4Offset,
+					u4Offset += scnprintf(pcCommand + u4Offset,
 						i4TotalLen - u4Offset, "\nUnknown Cmd ID :%-9d:", u2CoexInfoId);
 				}
 
 				switch (u2CoexInfoLen) {
 				case 0x0001:
 				{
-					u4Offset += snprintf(pcCommand + u4Offset,
+					u4Offset += scnprintf(pcCommand + u4Offset,
 					i4TotalLen - u4Offset, "0x%02x",
 					prCmdCoexGetInfo->u4CoexInfo[(ucIdx + 1) * 2 + 1]);
 					break;
 				}
 				case 0x0002:
 				{
-					u4Offset += snprintf(pcCommand + u4Offset,
+					u4Offset += scnprintf(pcCommand + u4Offset,
 					i4TotalLen - u4Offset, "0x%04x",
 					prCmdCoexGetInfo->u4CoexInfo[(ucIdx + 1) * 2 + 1]);
 					break;
 				}
 				case 0x0003:
 				{
-					u4Offset += snprintf(pcCommand + u4Offset,
+					u4Offset += scnprintf(pcCommand + u4Offset,
 					i4TotalLen - u4Offset, "0x%06x",
 					prCmdCoexGetInfo->u4CoexInfo[(ucIdx + 1) * 2 + 1]);
 					break;
 				}
 				case 0x0004:
 				{
-					u4Offset += snprintf(pcCommand + u4Offset,
+					u4Offset += scnprintf(pcCommand + u4Offset,
 					i4TotalLen - u4Offset, "0x%08x",
 					prCmdCoexGetInfo->u4CoexInfo[(ucIdx + 1) * 2 + 1]);
 					break;
@@ -4015,7 +4015,7 @@ static int priv_driver_get_mcr(IN struct net_device *prNetDev, IN char *pcComman
 		if (rStatus != WLAN_STATUS_SUCCESS)
 			return -1;
 
-		i4BytesWritten = snprintf(pcCommand, i4TotalLen, "0x%08x", (unsigned int)rCmdAccessReg.u4Data);
+		i4BytesWritten = scnprintf(pcCommand, i4TotalLen, "0x%08x", (unsigned int)rCmdAccessReg.u4Data);
 		DBGLOG(REQ, INFO, "%s: command result is %s\n", __func__, pcCommand);
 	}
 
@@ -4207,7 +4207,7 @@ static int priv_driver_get_test_result(IN struct net_device *prNetDev, IN char *
 		if (rStatus != WLAN_STATUS_SUCCESS)
 			return -1;
 		u4Data = (unsigned int)rRfATInfo.u4FuncData;
-		i4BytesWritten = snprintf(pcCommand, i4TotalLen, "%d[0x%08x]", u4Data, u4Data);
+		i4BytesWritten = scnprintf(pcCommand, i4TotalLen, "%d[0x%08x]", u4Data, u4Data);
 		DBGLOG(REQ, INFO, "%s: command result is %s\n", __func__, pcCommand);
 	}
 
@@ -6563,7 +6563,7 @@ static int priv_driver_get_drv_mcr(IN struct net_device *prNetDev, IN char *pcCo
 		if (rStatus != WLAN_STATUS_SUCCESS)
 			return -1;
 
-		i4BytesWritten = snprintf(pcCommand, i4TotalLen, "0x%08x", (unsigned int)rCmdAccessReg.u4Data);
+		i4BytesWritten = scnprintf(pcCommand, i4TotalLen, "0x%08x", (unsigned int)rCmdAccessReg.u4Data);
 		DBGLOG(REQ, INFO, "%s: command result is %s\n", __func__, pcCommand);
 	}
 
@@ -6654,7 +6654,7 @@ static int priv_driver_get_sw_ctrl(IN struct net_device *prNetDev, IN char *pcCo
 		if (rStatus != WLAN_STATUS_SUCCESS)
 			return -1;
 
-		i4BytesWritten = snprintf(pcCommand, i4TotalLen, "0x%08x", (unsigned int)rSwCtrlInfo.u4Data);
+		i4BytesWritten = scnprintf(pcCommand, i4TotalLen, "0x%08x", (unsigned int)rSwCtrlInfo.u4Data);
 		DBGLOG(REQ, INFO, "%s: command result is %s\n", __func__, pcCommand);
 	}
 
@@ -7069,7 +7069,7 @@ priv_driver_get_chip_config_16(PUINT_8 pucStartAddr, UINT_32 u4Length, UINT_32 u
 	while (u4Length >= 16) {
 		if (i4TotalLen > i4BytesWritten) {
 			i4BytesWritten +=
-			    snprintf(pcCommand + i4BytesWritten,
+			    scnprintf(pcCommand + i4BytesWritten,
 					i4TotalLen - i4BytesWritten,
 					"%04lx %02x %02x %02x %02x  %02x %02x %02x %02x - %02x %02x %02x %02x  %02x %02x %02x %02x\n",
 					u4Line, pucStartAddr[0],
@@ -7101,7 +7101,7 @@ priv_driver_get_chip_config_4(PUINT_32 pu4StartAddr, UINT_32 u4Length, UINT_32 u
 	while (u4Length >= 16) {
 		if (i4TotalLen > i4BytesWritten) {
 			i4BytesWritten +=
-			    snprintf(pcCommand +
+			    scnprintf(pcCommand +
 				     i4BytesWritten,
 				     i4TotalLen -
 				     i4BytesWritten,
@@ -7181,7 +7181,7 @@ int priv_driver_get_chip_config(IN struct net_device *prNetDev, IN char *pcComma
 
 			if (rChipConfigInfo.ucRespType == CHIP_CONFIG_TYPE_ASCII) {
 				i4BytesWritten =
-				    snprintf(pcCommand + i4BytesWritten, i4TotalLen, "%s", rChipConfigInfo.aucCmd);
+				    scnprintf(pcCommand + i4BytesWritten, i4TotalLen, "%s", rChipConfigInfo.aucCmd);
 			} else {
 				UINT_32 u4Length;
 				UINT_32 u4Line;
@@ -7283,7 +7283,7 @@ int priv_driver_get_linkspeed(IN struct net_device *prNetDev, IN char *pcCommand
 		return -1;
 
 	u4LinkSpeed = u4Rate * 100;
-	i4BytesWritten = snprintf(pcCommand, i4TotalLen, "LinkSpeed %u", (unsigned int)u4LinkSpeed);
+	i4BytesWritten = scnprintf(pcCommand, i4TotalLen, "LinkSpeed %u", (unsigned int)u4LinkSpeed);
 	DBGLOG(REQ, INFO, "%s: command result is %s\n", __func__, pcCommand);
 	return i4BytesWritten;
 
@@ -7820,16 +7820,16 @@ int priv_driver_set_miracast(IN struct net_device *prNetDev, IN char *pcCommand,
 
 			if (ucMode == MIRACAST_MODE_OFF) {
 				prWfdCfgSettings->ucWfdEnable = 0;
-				snprintf(pcCommand, i4TotalLen, CMD_SET_CHIP " mira 0");
+				scnprintf(pcCommand, i4TotalLen, CMD_SET_CHIP " mira 0");
 			} else if (ucMode == MIRACAST_MODE_SOURCE) {
 				prWfdCfgSettings->ucWfdEnable = 1;
-				snprintf(pcCommand, i4TotalLen, CMD_SET_CHIP " mira 1");
+				scnprintf(pcCommand, i4TotalLen, CMD_SET_CHIP " mira 1");
 			} else if (ucMode == MIRACAST_MODE_SINK) {
 				prWfdCfgSettings->ucWfdEnable = 2;
-				snprintf(pcCommand, i4TotalLen, CMD_SET_CHIP " mira 2");
+				scnprintf(pcCommand, i4TotalLen, CMD_SET_CHIP " mira 2");
 			} else {
 				prWfdCfgSettings->ucWfdEnable = 0;
-				snprintf(pcCommand, i4TotalLen, CMD_SET_CHIP " mira 0");
+				scnprintf(pcCommand, i4TotalLen, CMD_SET_CHIP " mira 0");
 			}
 
 			mboxSendMsg(prAdapter, MBOX_ID_0, (P_MSG_HDR_T) prMsgWfdCfgUpdate, MSG_SEND_METHOD_BUF);
@@ -8598,7 +8598,7 @@ int priv_driver_set_monitor(IN struct net_device *prNetDev, IN char *pcCommand, 
 		fgIsLegalChannel = rlmDomainIsLegalChannel(prAdapter, eBand, ucPriChannel);
 
 		if (fgIsLegalChannel == FALSE) {
-			i4BytesWritten = snprintf(pcCommand, i4TotalLen, "Illegal primary channel %d", ucPriChannel);
+			i4BytesWritten = scnprintf(pcCommand, i4TotalLen, "Illegal primary channel %d", ucPriChannel);
 			return i4BytesWritten;
 		}
 
@@ -8652,7 +8652,7 @@ int priv_driver_set_monitor(IN struct net_device *prNetDev, IN char *pcCommand, 
 
 		if (fgError) {
 			i4BytesWritten =
-			    snprintf(pcCommand, i4TotalLen, "Invalid primary channel %d with bandwidth %d",
+			    scnprintf(pcCommand, i4TotalLen, "Invalid primary channel %d with bandwidth %d",
 				     ucPriChannel, ucChannelWidth);
 			return i4BytesWritten;
 		}
@@ -8678,13 +8678,13 @@ int priv_driver_set_monitor(IN struct net_device *prNetDev, IN char *pcCommand, 
 				   &rMonitorSetInfo, sizeof(rMonitorSetInfo), FALSE, FALSE, TRUE, &u4BufLen);
 
 		i4BytesWritten =
-		    snprintf(pcCommand, i4TotalLen, "set monitor config %s",
+		    scnprintf(pcCommand, i4TotalLen, "set monitor config %s",
 			     (rStatus == WLAN_STATUS_SUCCESS) ? "success" : "fail");
 
 		return i4BytesWritten;
 	}
 
-	i4BytesWritten = snprintf(pcCommand, i4TotalLen, "monitor [Enable][PriChannel][ChannelWidth][Sco]");
+	i4BytesWritten = scnprintf(pcCommand, i4TotalLen, "monitor [Enable][PriChannel][ChannelWidth][Sco]");
 
 	return i4BytesWritten;
 }
@@ -8706,7 +8706,7 @@ static int priv_driver_get_version(IN struct net_device *prNetDev, IN char *pcCo
 	prAdapter = prGlueInfo->prAdapter;
 	prVerInfo = &prAdapter->rVerInfo;
 
-	u4Offset += snprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
+	u4Offset += scnprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
 	"\nChip ROM ver [%u]\n", prAdapter->chip_info->eco_ver);
 
 	wlanPrintVersion(prAdapter);
@@ -8715,7 +8715,7 @@ static int priv_driver_get_version(IN struct net_device *prNetDev, IN char *pcCo
 	aucBuf[sizeof(prVerInfo->aucFwBranchInfo)] = '\0';
 	memcpy(aucDate, prVerInfo->aucFwDateCode, sizeof(prVerInfo->aucFwDateCode));
 	aucDate[sizeof(prVerInfo->aucFwDateCode)] = '\0';
-	u4Offset += snprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
+	u4Offset += scnprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
 	"\nN9 FW version %s-%u.%u.%u[DEC] (%s)\n", aucBuf, (prVerInfo->u2FwOwnVersion >> 8),
 	(prVerInfo->u2FwOwnVersion & BITS(0, 7)), prVerInfo->ucFwBuildNumber, aucDate);
 #if CFG_SUPPORT_COMPRESSION_FW_OPTION
@@ -8725,7 +8725,7 @@ static int priv_driver_get_version(IN struct net_device *prNetDev, IN char *pcCo
 		prTailer = &prVerInfo->rN9Compressedtailer;
 		kalMemCopy(aucBuf, prTailer->ram_version, 10);
 		aucBuf[10] = '\0';
-		u4Offset += snprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
+		u4Offset += scnprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
 		"N9  tailer version %s (%s) info %u:E%u\n",
 		aucBuf, prTailer->ram_built_date, prTailer->chip_info,
 		prTailer->eco_code + 1);
@@ -8733,7 +8733,7 @@ static int priv_driver_get_version(IN struct net_device *prNetDev, IN char *pcCo
 		prTailer = &prVerInfo->rN9tailer;
 		kalMemCopy(aucBuf, prTailer->ram_version, 10);
 		aucBuf[10] = '\0';
-		u4Offset += snprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
+		u4Offset += scnprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
 		"N9  tailer version %s (%s) info %u:E%u\n",
 		aucBuf, prTailer->ram_built_date, prTailer->chip_info,
 		prTailer->eco_code + 1);
@@ -8744,7 +8744,7 @@ static int priv_driver_get_version(IN struct net_device *prNetDev, IN char *pcCo
 		prTailer = &prVerInfo->rCR4Compressedtailer;
 		kalMemCopy(aucBuf, prTailer->ram_version, 10);
 		aucBuf[10] = '\0';
-		u4Offset += snprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
+		u4Offset += scnprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
 		"CR4 tailer version %s (%s) info %u:E%u\n",
 		aucBuf, prTailer->ram_built_date, prTailer->chip_info,
 		prTailer->eco_code + 1);
@@ -8752,7 +8752,7 @@ static int priv_driver_get_version(IN struct net_device *prNetDev, IN char *pcCo
 		prTailer = &prVerInfo->rCR4tailer;
 		kalMemCopy(aucBuf, prTailer->ram_version, 10);
 		aucBuf[10] = '\0';
-		u4Offset += snprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
+		u4Offset += scnprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
 		"CR4 tailer version %s (%s) info %u:E%u\n",
 		aucBuf, prTailer->ram_built_date, prTailer->chip_info,
 		prTailer->eco_code + 1);
@@ -8763,7 +8763,7 @@ static int priv_driver_get_version(IN struct net_device *prNetDev, IN char *pcCo
 		aucBuf[10] = '\0';
 		kalMemCopy(aucDate, prTailer->ram_built_date, sizeof(prTailer->ram_built_date));
 		aucDate[sizeof(prTailer->ram_built_date)] = '\0';
-		u4Offset += snprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
+		u4Offset += scnprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
 		"N9  tailer version %s (%s) info %u:E%u\n",
 		aucBuf, aucDate, prTailer->chip_info,
 		prTailer->eco_code + 1);
@@ -8773,13 +8773,13 @@ static int priv_driver_get_version(IN struct net_device *prNetDev, IN char *pcCo
 		aucBuf[10] = '\0';
 		kalMemCopy(aucDate, prTailer->ram_built_date, sizeof(prTailer->ram_built_date));
 		aucDate[sizeof(prTailer->ram_built_date)] = '\0';
-		u4Offset += snprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
+		u4Offset += scnprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
 		"CR4 tailer version %s (%s) info %u:E%u\n",
 		aucBuf, aucDate, prTailer->chip_info,
 		prTailer->eco_code + 1);
 #endif
 	if (!prVerInfo->fgPatchIsDlByDrv) {
-		u4Offset += snprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
+		u4Offset += scnprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
 			"Patch is not downloaded by driver, read patch binary\n");
 		wlanGetPatchInfo(prAdapter);
 	}
@@ -8788,17 +8788,17 @@ static int priv_driver_get_version(IN struct net_device *prNetDev, IN char *pcCo
 	aucBuf[sizeof(prVerInfo->rPatchHeader.aucPlatform)] = '\0';
 	memcpy(aucDate, prVerInfo->rPatchHeader.aucBuildDate, sizeof(prVerInfo->rPatchHeader.aucBuildDate));
 	aucDate[sizeof(prVerInfo->rPatchHeader.aucBuildDate)] = '\0';
-	u4Offset += snprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
+	u4Offset += scnprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
 		"Patch platform %s version 0x%04X %s\n",
 		aucBuf, prVerInfo->rPatchHeader.u4PatchVersion, aucDate);
 
 #if 0
-	u4Offset += snprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
+	u4Offset += scnprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
 		"Drv version %u.%u[DEC]", (prVerInfo->u2FwPeerVersion >> 8),
 		(prVerInfo->u2FwPeerVersion & BITS(0, 7)));
 #endif
 
-	u4Offset += snprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
+	u4Offset += scnprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
 		"WiFi Driver Version " NIC_DRIVER_VERSION_STRING "\n");
 
 	i4BytesWritten = (INT_32)u4Offset;
@@ -9121,7 +9121,7 @@ static int priv_driver_get_deep_sleep_cnt(IN struct net_device *prNetDev, IN cha
 	pu4Ptr = (PUINT_32)&rCnmStatus;
 	*pu4Ptr = rSwCtrlInfo.u4Data;
 
-	u4Offset += snprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
+	u4Offset += scnprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
 							"Deep Sleep Cnt %d\n", rSwCtrlInfo.u4Data);
 
 	i4BytesWritten = (INT_32)u4Offset;
@@ -9169,7 +9169,7 @@ static int priv_driver_get_cnm_info(IN struct net_device *prNetDev, IN char *pcC
 	pu4Ptr = (PUINT_32)&rCnmStatus;
 	*pu4Ptr = rSwCtrlInfo.u4Data;
 
-	u4Offset += snprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
+	u4Offset += scnprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
 				"DBDC is %s, %u CHs in BAND0, %u CHs in BAND1\n",
 				rCnmStatus.fgDbDcModeEn ? "ON" : "OFF", rCnmStatus.ucChNumB0, rCnmStatus.ucChNumB1);
 
@@ -9186,7 +9186,7 @@ static int priv_driver_get_cnm_info(IN struct net_device *prNetDev, IN char *pcC
 
 		prChList = (P_CNM_CH_LIST_T)&rSwCtrlInfo.u4Data;
 
-		u4Offset += snprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
+		u4Offset += scnprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
 					"BAND0 channels : %u %u %u\n",
 					prChList->ucChNum[0], prChList->ucChNum[1], prChList->ucChNum[2]);
 	}
@@ -9203,7 +9203,7 @@ static int priv_driver_get_cnm_info(IN struct net_device *prNetDev, IN char *pcC
 
 		prChList = (P_CNM_CH_LIST_T)&rSwCtrlInfo.u4Data;
 
-		u4Offset += snprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
+		u4Offset += scnprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
 					"BAND1 channels : %u %u %u\n",
 					prChList->ucChNum[0], prChList->ucChNum[1], prChList->ucChNum[2]);
 	}
@@ -9300,7 +9300,7 @@ static int priv_driver_get_ch_dirtiness(IN struct net_device *prNetDev, IN char 
 		for (cIdx2 = 0; cIdx2 < ucChannelNum; cIdx2++) {
 			if (prChnLoadInfo->rChnRankList[cIdx].ucChannel ==
 				prChannelList[cIdx2].ucChannelNum) {
-				u4Offset = kalSnprintf(pcCommand + i4BytesWritten,
+				u4Offset = scnprintf(pcCommand + i4BytesWritten,
 							i4TotalLen - i4BytesWritten,
 							"\nch %03u -> dirtiness %lu",
 							prChnLoadInfo->rChnRankList[cIdx].ucChannel,
@@ -9387,7 +9387,7 @@ static int priv_driver_efuse_ops(IN struct net_device *prNetDev, IN char *pcComm
 					sizeof(PARAM_CUSTOM_ACCESS_EFUSE_T), TRUE, TRUE, TRUE, &u4BufLen);
 
 		if (rStatus == WLAN_STATUS_SUCCESS) {
-			u4Offset += snprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
+			u4Offset += scnprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
 						"Read success 0x%X = 0x%X\n", u4Efuse_addr
 						, prGlueInfo->prAdapter->aucEepromVaule[u4Index]);
 		}
@@ -9402,7 +9402,7 @@ static int priv_driver_efuse_ops(IN struct net_device *prNetDev, IN char *pcComm
 					&rAccessEfuseInfo,
 					sizeof(PARAM_CUSTOM_ACCESS_EFUSE_T), FALSE, FALSE, TRUE, &u4BufLen);
 		if (rStatus == WLAN_STATUS_SUCCESS) {
-			u4Offset += snprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
+			u4Offset += scnprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
 						"Write success 0x%X = 0x%X\n"
 						, u4Efuse_addr
 						, ucEfuse_value);
@@ -9411,7 +9411,7 @@ static int priv_driver_efuse_ops(IN struct net_device *prNetDev, IN char *pcComm
 		PARAM_CUSTOM_EFUSE_FREE_BLOCK_T rEfuseFreeBlock = {};
 
 		if (prGlueInfo->prAdapter->fgIsSupportGetFreeEfuseBlockCount == FALSE) {
-			u4Offset += snprintf(pcCommand + u4Offset,
+			u4Offset += scnprintf(pcCommand + u4Offset,
 						i4TotalLen - u4Offset, "Cannot read free block size\n");
 			return (INT_32)u4Offset;
 		}
@@ -9420,12 +9420,12 @@ static int priv_driver_efuse_ops(IN struct net_device *prNetDev, IN char *pcComm
 					&rEfuseFreeBlock,
 					sizeof(PARAM_CUSTOM_EFUSE_FREE_BLOCK_T), TRUE, TRUE, TRUE, &u4BufLen);
 		if (rStatus == WLAN_STATUS_SUCCESS) {
-			u4Offset += snprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
+			u4Offset += scnprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
 						"Free block size 0x%X\n", prGlueInfo->prAdapter->u4FreeBlockNum);
 		}
 	}
 #else
-	u4Offset += snprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
+	u4Offset += scnprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
 					"efuse ops is invalid\n");
 #endif
 
@@ -9433,13 +9433,13 @@ static int priv_driver_efuse_ops(IN struct net_device *prNetDev, IN char *pcComm
 
 efuse_op_invalid:
 
-	u4Offset += snprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
+	u4Offset += scnprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
 				"\nHelp menu\n");
-	u4Offset += snprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
+	u4Offset += scnprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
 				"\tRead:\t\"efuse read addr_hex\"\n");
-	u4Offset += snprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
+	u4Offset += scnprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
 				"\tWrite:\t\"efuse write addr_hex val_hex\"\n");
-	u4Offset += snprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
+	u4Offset += scnprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
 				"\tFree Blocks:\t\"efuse free\"\n");
 	return (INT_32)u4Offset;
 }
@@ -9532,7 +9532,7 @@ static int priv_driver_get_noise(IN struct net_device *prNetDev, IN char *pcComm
 	u2Wf0AvgPwr = rSwCtrlInfo.u4Data & 0xFFFF;
 	u2Wf1AvgPwr = (rSwCtrlInfo.u4Data >> 16) & 0xFFFF;
 
-	u4Offset += snprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
+	u4Offset += scnprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
 				"Noise Idle Avg. Power: WF0:%ddB WF1:%ddB\n", u2Wf0AvgPwr, u2Wf1AvgPwr);
 
 	i4BytesWritten = (INT_32)u4Offset;
@@ -9629,79 +9629,79 @@ static int priv_driver_get_traffic_report(IN struct net_device *prNetDev, IN cha
 	rStatus = kalIoctl(prGlueInfo, wlanoidAdvCtrl, cmd, sizeof(*cmd), TRUE, TRUE, TRUE, &u4BufLen);
 
 	if ((rStatus != WLAN_STATUS_SUCCESS) && (rStatus != WLAN_STATUS_PENDING))
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\ncommand failed %x", rStatus);
 	else if (cmd->ucAction == CMD_GET_REPORT_GET) {
 		int persentage = 0;
 		int sample_dur = cmd->u4FetchEd - cmd->u4FetchSt;
 
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\nCCK false detect cnt: %d"
 				, (cmd->u4FalseCCA >> EVENT_REPORT_CCK_FCCA) & EVENT_REPORT_CCK_FCCA_FEILD);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\nOFDM false detect cnt: %d"
 				, (cmd->u4FalseCCA >> EVENT_REPORT_OFDM_FCCA) & EVENT_REPORT_OFDM_FCCA_FEILD);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\nCCK Sig CRC cnt: %d"
 				, (cmd->u4HdrCRC >> EVENT_REPORT_CCK_SIGERR) & EVENT_REPORT_CCK_SIGERR_FEILD);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\nOFDM Sig CRC cnt: %d"
 				, (cmd->u4HdrCRC >> EVENT_REPORT_OFDM_SIGERR) & EVENT_REPORT_OFDM_SIGERR_FEILD);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\nBand%d Info:", cmd->ucBand);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n\tSample every %u ms with %u points", cmd->u4TimerDur, cmd->u2SamplePoints);
 		if (fgGetDbg) {
-			i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+			i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				" from systime %u - %u total_dur %u us f_cost %u us t_drift %d ms"
 				, cmd->u4FetchSt, cmd->u4FetchEd
 				, sample_dur
 				, cmd->u4FetchCost, cmd->TimerDrift);
-			i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+			i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 					"\n\tbusy-RMAC %u us, idle-TMAC %u us, t_total %u"
 					, cmd->u4ChBusy, cmd->u4ChIdle, cmd->u4ChBusy + cmd->u4ChIdle);
-			i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+			i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 					"\n\theavy tx threshold %u%% rx threshold %u%%"
 					, cmd->ucTxThres, cmd->ucRxThres);
 		}
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n\tch_busy %u us, ch_idle %u us, total_period %u us"
 				, sample_dur - cmd->u4ChIdle
 				, cmd->u4ChIdle, sample_dur);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n\tmy_tx_time: %u us"
 				, cmd->u4TxAirTime);
 		if (cmd->u4FetchEd - cmd->u4FetchSt) {
 			persentage = cmd->u4TxAirTime / (sample_dur / 1000);
-			i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+			i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				", tx utility: %d.%1d%%"
 				, persentage / 10
 				, persentage % 10);
 		}
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n\tmy_data_rx_time (no BMC data): %u us"
 				, cmd->u4RxAirTime);
 		if (cmd->u4FetchEd - cmd->u4FetchSt) {
 			persentage = cmd->u4RxAirTime / (sample_dur / 1000);
-			i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+			i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				", rx utility: %d.%1d%%"
 				, persentage / 10
 				, persentage % 10);
 		}
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n\tTotal packet transmitted: %u", cmd->u4PktSent);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n\tTotal tx ok packet: %u", cmd->u4PktSent - cmd->u4PktTxfailed);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n\tTotal tx failed packet: %u", cmd->u4PktTxfailed);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n\tTotal tx retried packet: %u", cmd->u4PktRetried);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n\tTotal rx mpdu: %u", cmd->u4RxMPDU);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n\tTotal rx fcs: %u", cmd->u4RxFcs);
 	} else
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\ncommand sent %x", rStatus);
 
 	if (cmd)
@@ -9711,7 +9711,7 @@ static int priv_driver_get_traffic_report(IN struct net_device *prNetDev, IN cha
 get_report_invalid:
 	if (cmd)
 		kalMemFree(cmd, VIR_MEM_TYPE, sizeof(*cmd));
-	i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+	i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\nformat:get_report [enable|disable|get|reset]");
 	return i4BytesWritten;
 }
@@ -9754,7 +9754,7 @@ static int priv_driver_pta_config(IN struct net_device *prNetDev, IN char *pcCom
 		for (i = 2; i < i4Argc; i += 2) {
 			u4Ret = kalkStrtou32(apcArgv[i+1], 0, &u4Val);
 			if (u4Ret) {
-				i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+				i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 					"\nparsing err(%d) %s %s", u4Ret, apcArgv[i], apcArgv[i+1]);
 				goto set_pta_invalid;
 			}
@@ -9805,7 +9805,7 @@ static int priv_driver_pta_config(IN struct net_device *prNetDev, IN char *pcCom
 			} else if (strncasecmp(apcArgv[i], "STATRESET", strlen("STATRESET")) == 0)
 				cmd->u4ConfigMask |= CMD_PTA_CONFIG_PTA_STAT_RESET;
 			else {
-				i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+				i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 					"\nunknown parameter %s %s", apcArgv[i], apcArgv[i+1]);
 				goto set_pta_invalid;
 			}
@@ -9823,89 +9823,89 @@ static int priv_driver_pta_config(IN struct net_device *prNetDev, IN char *pcCom
 		goto set_pta_invalid;
 
 	if ((rStatus != WLAN_STATUS_SUCCESS) && (rStatus != WLAN_STATUS_PENDING))
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\ncommand failed %x", rStatus);
 	else if (!(cmd->u2Type & CMD_ADV_CONTROL_SET)) {
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\nCoex mode: %s", (cmd->u4CoexMode) ? "FDD" : "TDD");
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\nPTA status:");
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n module enable %x wifi %x bt %x wifi arb %x"
 				, (cmd->u4PtaConfig>>EVENT_CONFIG_PTA_OFFSET)&EVENT_CONFIG_PTA_FEILD
 				, (cmd->u4PtaConfig>>EVENT_CONFIG_PTA_WIFI_OFFSET)&EVENT_CONFIG_PTA_WIFI_FEILD
 				, (cmd->u4PtaConfig>>EVENT_CONFIG_PTA_BT_OFFSET)&EVENT_CONFIG_PTA_BT_FEILD
 				, (cmd->u4PtaConfig>>EVENT_CONFIG_PTA_ARB_OFFSET)&EVENT_CONFIG_PTA_ARB_FEILD);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\nPriority stat:");
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n txData %d", cmd->u4TxDataTag);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n rxDataAck %d", cmd->u4RxDataAckTag);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n rxData %d", cmd->u4RxNswTag);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n txAck %d", cmd->u4TxAckTag);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n txBmc %d", cmd->u4TxBMCTag);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n txBcn %d", cmd->u4TxBCNTag);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n txMgmt %d", cmd->u4TxMgmtTag);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n rxMgmtAck %d", cmd->u4RxMgmtAckTag);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n rxBcn %d", cmd->u4RxSPTag);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n prottag %d", cmd->u4TxProtFrameTag);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\nLast fetched grant stat:");
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n wifi grant %x txreq %x rxreq %x pritag %x"
 				, (cmd->u4GrantStat>>EVENT_CONFIG_WIFI_GRANT_OFFSET)&EVENT_CONFIG_WIFI_GRANT_FEILD
 				, (cmd->u4GrantStat>>EVENT_CONFIG_WIFI_TXREQ_OFFSET)&EVENT_CONFIG_WIFI_TXREQ_FEILD
 				, (cmd->u4GrantStat>>EVENT_CONFIG_WIFI_RXREQ_OFFSET)&EVENT_CONFIG_WIFI_RXREQ_FEILD
 				, (cmd->u4GrantStat>>EVENT_CONFIG_WIFI_PRI_OFFSET)&EVENT_CONFIG_WIFI_PRI_FEILD);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n bt grant %x txreq %x rxreq %x pritag %x"
 				, (cmd->u4GrantStat>>EVENT_CONFIG_BT_GRANT_OFFSET)&EVENT_CONFIG_BT_GRANT_FEILD
 				, (cmd->u4GrantStat>>EVENT_CONFIG_BT_TXREQ_OFFSET)&EVENT_CONFIG_BT_TXREQ_FEILD
 				, (cmd->u4GrantStat>>EVENT_CONFIG_BT_RXREQ_OFFSET)&EVENT_CONFIG_BT_RXREQ_FEILD
 				, (cmd->u4GrantStat>>EVENT_CONFIG_BT_PRI_OFFSET)&EVENT_CONFIG_BT_PRI_FEILD);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\nPTA stat:");
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n wf0 txreq_cnt %d txgrant_cnt %d txabort_cnt %d"
 				, (cmd->u4PtaWF0TxCnt>>EVENT_PTA_WFTRX_CNT_OFFSET)&EVENT_PTA_WFTRX_CNT_FEILD
 				, (cmd->u4PtaWF0TxCnt>>EVENT_PTA_WFTRX_GRANT_CNT_OFFSET)&EVENT_PTA_WFTRX_GRANT_CNT_FEILD
 				, (cmd->u4PtaWF0AbtCnt>>EVENT_PTA_TX_ABT_CNT_OFFSET)&EVENT_PTA_TX_ABT_CNT_FEILD);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n wf0 rxreq_cnt %d rxgrant_cnt %d rxabort_cnt %d"
 				, (cmd->u4PtaWF0RxCnt>>EVENT_PTA_WFTRX_CNT_OFFSET)&EVENT_PTA_WFTRX_CNT_FEILD
 				, (cmd->u4PtaWF0RxCnt>>EVENT_PTA_WFTRX_GRANT_CNT_OFFSET)&EVENT_PTA_WFTRX_GRANT_CNT_FEILD
 				, (cmd->u4PtaWF0AbtCnt>>EVENT_PTA_RX_ABT_CNT_OFFSET)&EVENT_PTA_RX_ABT_CNT_FEILD);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n wf1 txreq_cnt %d txgrant_cnt %d txabort_cnt %d"
 				, (cmd->u4PtaWF1TxCnt>>EVENT_PTA_WFTRX_CNT_OFFSET)&EVENT_PTA_WFTRX_CNT_FEILD
 				, (cmd->u4PtaWF1TxCnt>>EVENT_PTA_WFTRX_GRANT_CNT_OFFSET)&EVENT_PTA_WFTRX_GRANT_CNT_FEILD
 				, (cmd->u4PtaWF1AbtCnt>>EVENT_PTA_TX_ABT_CNT_OFFSET)&EVENT_PTA_TX_ABT_CNT_FEILD);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n wf1 rxreq_cnt %d rxgrant_cnt %d rxabort_cnt %d"
 				, (cmd->u4PtaWF1RxCnt>>EVENT_PTA_WFTRX_CNT_OFFSET)&EVENT_PTA_WFTRX_CNT_FEILD
 				, (cmd->u4PtaWF1RxCnt>>EVENT_PTA_WFTRX_GRANT_CNT_OFFSET)&EVENT_PTA_WFTRX_GRANT_CNT_FEILD
 				, (cmd->u4PtaWF1AbtCnt>>EVENT_PTA_RX_ABT_CNT_OFFSET)&EVENT_PTA_RX_ABT_CNT_FEILD);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n bt txreq_cnt %d txgrant_cnt %d txabort_cnt %d"
 				, (cmd->u4PtaBTTxCnt>>EVENT_PTA_BTTRX_CNT_OFFSET)&EVENT_PTA_BTTRX_CNT_FEILD
 				, (cmd->u4PtaBTTxCnt>>EVENT_PTA_BTTRX_GRANT_CNT_OFFSET)&EVENT_PTA_BTTRX_GRANT_CNT_FEILD
 				, (cmd->u4PtaBTAbtCnt>>EVENT_PTA_TX_ABT_CNT_OFFSET)&EVENT_PTA_TX_ABT_CNT_FEILD);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n bt rxreq_cnt %d rxgrant_cnt %d rxabort_cnt %d"
 				, (cmd->u4PtaBTRxCnt>>EVENT_PTA_BTTRX_CNT_OFFSET)&EVENT_PTA_BTTRX_CNT_FEILD
 				, (cmd->u4PtaBTRxCnt>>EVENT_PTA_BTTRX_GRANT_CNT_OFFSET)&EVENT_PTA_BTTRX_GRANT_CNT_FEILD
 				, (cmd->u4PtaBTAbtCnt>>EVENT_PTA_RX_ABT_CNT_OFFSET)&EVENT_PTA_RX_ABT_CNT_FEILD);
 	} else
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\ncommand sent %x", rStatus);
 
 	if (cmd)
@@ -9915,33 +9915,33 @@ static int priv_driver_pta_config(IN struct net_device *prNetDev, IN char *pcCom
 set_pta_invalid:
 	if (cmd)
 		kalMemFree(cmd, VIR_MEM_TYPE, sizeof(*cmd));
-	i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+	i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\nformat:pta_config set [enable 1|0][txdata val][rxdataack val]");
-	i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+	i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n\t[rxdata val][txack val][txbmc val][txbcn val][rxbcn val]");
-	i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+	i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n\t[txmgmt val][rxmgmtack val][prottag val]");
-	i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+	i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n\t[statenable 1|0][statreset 1]");
-	i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+	i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n [enable val]: enable PTA(1) or not(0)");
-	i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+	i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n [txtag val<0~15>]: priority tag for tx ac0-ac3");
-	i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+	i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n [rxdataack val<0~15>]: priority tag for rx ac0-ac3 ack");
-	i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+	i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n [rxdata val<0~15>]: priority tag for rx data");
-	i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+	i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n [txack val<0~15>]: priority tag for tx ack");
-	i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+	i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n [txbmc val<0~15>]: priority tag for tx bmc packet");
-	i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+	i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n [txbcn val<0~15>]: priority tag for tx beacon");
-	i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+	i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n [rxbcn val<0~15>]: priority tag for rx beacon");
-	i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+	i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n [prottag val<0~15>]: priority tag for Protection frame");
-	i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+	i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\nformat(%d):pta_config get", i4Argc);
 	return i4BytesWritten;
 }
@@ -10040,7 +10040,7 @@ static int priv_driver_get_pop(IN struct net_device *prNetDev, IN char *pcComman
 	u4CckTh = rSwCtrlInfo.u4Data & 0xFF;
 	u4OfdmTh = (rSwCtrlInfo.u4Data >> 8) & 0xFF;
 
-	u4Offset += snprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
+	u4Offset += scnprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
 				"PoP: CckTh:%ddB OfdmTh:%ddB\n", u4CckTh, u4OfdmTh);
 
 	i4BytesWritten = (INT_32)u4Offset;
@@ -10140,7 +10140,7 @@ static int priv_driver_get_ed(IN struct net_device *prNetDev, IN char *pcCommand
 
 	u4EdVal = rSwCtrlInfo.u4Data & 0xFF;
 
-	u4Offset += snprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
+	u4Offset += scnprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
 				"ED: %ddB\n", u4EdVal);
 
 	i4BytesWritten = (INT_32)u4Offset;
@@ -10251,7 +10251,7 @@ static int priv_driver_get_pd(IN struct net_device *prNetDev, IN char *pcCommand
 	u4CckTh = rSwCtrlInfo.u4Data & 0xFF;
 	u4OfdmTh = (rSwCtrlInfo.u4Data >> 8) & 0xFF;
 
-	u4Offset += snprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
+	u4Offset += scnprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
 				"PD: CckTh:%ddB OfdmTh:%ddB\n", u4CckTh, u4OfdmTh);
 
 	i4BytesWritten = (INT_32)u4Offset;
@@ -10368,7 +10368,7 @@ static int priv_driver_get_maxrfgain(IN struct net_device *prNetDev, IN char *pc
 	u4Wf0Gain = rSwCtrlInfo.u4Data & 0xFF;
 	u4Wf1Gain = (rSwCtrlInfo.u4Data >> 8) & 0xFF;
 
-	u4Offset += snprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
+	u4Offset += scnprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
 				"Max RFGain: WF0:%ddB WF1:%ddB\n", u4Wf0Gain, u4Wf1Gain);
 
 	i4BytesWritten = (INT_32)u4Offset;
@@ -10427,46 +10427,46 @@ static int priv_driver_noise_histogram(IN struct net_device *prNetDev, IN char *
 	rStatus = kalIoctl(prGlueInfo, wlanoidAdvCtrl, cmd, sizeof(*cmd), TRUE, TRUE, TRUE, &u4BufLen);
 
 	if ((rStatus != WLAN_STATUS_SUCCESS) && (rStatus != WLAN_STATUS_PENDING))
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\ncommand failed %x", rStatus);
 	else if (cmd->ucAction == CMD_NOISE_HISTOGRAM_GET) {
 
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n       Power > -55: %10d"
 				, cmd->u4IPI10);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n-55 >= Power > -60: %10d"
 				, cmd->u4IPI9);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n-60 >= Power > -65: %10d"
 				, cmd->u4IPI8);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n-65 >= Power > -70: %10d"
 				, cmd->u4IPI7);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n-70 >= Power > -75: %10d"
 				, cmd->u4IPI6);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n-75 >= Power > -80: %10d"
 				, cmd->u4IPI5);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n-80 >= Power > -83: %10d"
 				, cmd->u4IPI4);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n-83 >= Power > -86: %10d"
 				, cmd->u4IPI3);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n-86 >= Power > -89: %10d"
 				, cmd->u4IPI2);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n-89 >= Power > -92: %10d"
 				, cmd->u4IPI1);
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\n-92 >= Power      : %10d"
 				, cmd->u4IPI0);
 
 	} else
-		i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+		i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\ncommand sent %x", rStatus);
 
 	if (cmd)
@@ -10476,7 +10476,7 @@ static int priv_driver_noise_histogram(IN struct net_device *prNetDev, IN char *
 noise_histogram_invalid:
 	if (cmd)
 		kalMemFree(cmd, VIR_MEM_TYPE, sizeof(*cmd));
-	i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
+	i4BytesWritten += scnprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
 				"\nformat:get_report [enable|disable|get|reset]");
 	return i4BytesWritten;
 }
@@ -10850,6 +10850,8 @@ INT_32 priv_driver_cmds(IN struct net_device *prNetDev, IN PCHAR pcCommand, IN I
 
 	if (GLUE_CHK_PR2(prNetDev, pcCommand) == FALSE)
 		return -1;
+	if (i4TotalLen <= 0)
+		return -EINVAL;
 	prGlueInfo = *((P_GLUE_INFO_T *) netdev_priv(prNetDev));
 
 		if (strncasecmp(pcCommand, CMD_RSSI, strlen(CMD_RSSI)) == 0) {
@@ -11211,7 +11213,7 @@ int priv_support_driver_cmd(IN struct net_device *prNetDev, IN OUT struct ifreq 
 	if (i4BytesWritten < 0) {
 		DBGLOG(REQ, INFO, "%s: command %s Written is %d\n", __func__, pcCommand, i4BytesWritten);
 		if (i4TotalLen >= 3) {
-			snprintf(pcCommand, 3, "OK");
+			scnprintf(pcCommand, 3, "OK");
 			i4BytesWritten = strlen("OK");
 		}
 	}
@@ -11264,6 +11266,9 @@ int android_private_support_driver_cmd(IN struct net_device *prNetDev,
 		return -EFAULT;
 #endif
 
+	if (priv_cmd.total_len <= 0)
+		return -EINVAL;
+
 	command = kzalloc(priv_cmd.total_len, GFP_KERNEL);
 	if (!command) {
 		DBGLOG(REQ, WARN, "%s, alloc mem failed\n", __func__);
@@ -11274,13 +11279,17 @@ int android_private_support_driver_cmd(IN struct net_device *prNetDev,
 		ret = -EFAULT;
 		goto FREE;
 	}
+	if (strnlen(command, priv_cmd.total_len) == priv_cmd.total_len) {
+		ret = -EINVAL;
+		goto FREE;
+	}
 	DBGLOG(REQ, INFO, "%s: driver cmd \"%s\" on %s\n", __func__, command, prReq->ifr_name);
 	bytes_written = priv_driver_cmds(prNetDev, command, priv_cmd.total_len);
 
 	if (bytes_written == -EOPNOTSUPP) {
           INT_32 i4BytesWritten = 0;
                                 
-          i4BytesWritten += kalSnprintf(command + i4BytesWritten, priv_cmd.total_len - i4BytesWritten,
+          i4BytesWritten += scnprintf(command + i4BytesWritten, priv_cmd.total_len - i4BytesWritten,
                                                                                                 "%s", "OK");
                                 command[i4BytesWritten] = '\0';
                                 bytes_written = i4BytesWritten;

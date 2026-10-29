@@ -672,7 +672,6 @@ static inline void kalCfg80211ScanDone(struct cfg80211_scan_request *request,
 #define kalMemMove(pvDst, pvSrc, u4Size)            memmove(pvDst, pvSrc, u4Size)
 
 /* string operation */
-#define kalStrCpy(dest, src)                        strcpy(dest, src)
 #define kalStrCmp(ct, cs)                           strcmp(ct, cs)
 #define kalStrnCmp(ct, cs, n)                       strncmp(ct, cs, n)
 #define kalStrChr(s, c)                             strchr(s, c)
@@ -688,12 +687,10 @@ static inline void kalCfg80211ScanDone(struct cfg80211_scan_request *request,
 #define kalkStrtos32(cp, base, resp)                kstrtos32(cp, base, resp)
 #define kalSnprintf(buf, size, fmt, ...)            snprintf(buf, size, fmt, ##__VA_ARGS__)
 #define kalScnprintf(buf, size, fmt, ...)           scnprintf(buf, size, fmt, ##__VA_ARGS__)
-#define kalSprintf(buf, fmt, ...)                   sprintf(buf, fmt, __VA_ARGS__)
 /* remove for AOSP */
 /* #define kalSScanf(buf, fmt, ...)                    sscanf(buf, fmt, __VA_ARGS__) */
 #define kalStrStr(ct, cs)                           strstr(ct, cs)
 #define kalStrSep(s, ct)                            strsep(s, ct)
-#define kalStrCat(dest, src)                        strcat(dest, src)
 #define kalIsXdigit(c)                              isxdigit(c)
 
 /* defined for wince sdio driver only */
@@ -784,8 +781,6 @@ do { \
 #define kalSendAeeReminding(_module, _desc, ...)
 #endif
 
-#define PRINTF_ARG(...)                             __VA_ARGS__
-#define SPRINTF(buf, arg)                           {buf += sprintf((char *)(buf), PRINTF_ARG arg); }
 
 #define USEC_TO_SYSTIME(_usec)      ((_usec) / USEC_PER_MSEC)
 #define MSEC_TO_SYSTIME(_msec)      (_msec)

@@ -1684,7 +1684,7 @@ wext_get_scan(IN struct net_device *prNetDev,
 		pcCur += IW_EV_POINT_LEN;
 
 		/* rearrange rate information */
-		u4BufIndex = sprintf(aucRatesBuf, "Rates (Mb/s):");
+		u4BufIndex = scnprintf(aucRatesBuf, sizeof(aucRatesBuf), "Rates (Mb/s):");
 		u4HighestRate = 0;
 		for (j = 0; j < PARAM_MAX_LEN_RATES_EX; ++j) {
 			UINT_8 curRate = prBss->rSupportedRates[j] & 0x7F;
@@ -1696,9 +1696,9 @@ wext_get_scan(IN struct net_device *prNetDev,
 				u4HighestRate = curRate;
 
 			if (curRate == RATE_5_5M)
-				u4BufIndex += sprintf(aucRatesBuf + u4BufIndex, " 5.5");
+				u4BufIndex += scnprintf(aucRatesBuf + u4BufIndex, sizeof(aucRatesBuf) - u4BufIndex, " 5.5");
 			else
-				u4BufIndex += sprintf(aucRatesBuf + u4BufIndex, " %d", curRate / 2);
+				u4BufIndex += scnprintf(aucRatesBuf + u4BufIndex, sizeof(aucRatesBuf) - u4BufIndex, " %d", curRate / 2);
 #if DBG
 			if (u4BufIndex > sizeof(aucRatesBuf)) {
 				/* printk("rate info too long\n"); */
@@ -1833,7 +1833,7 @@ wext_get_scan(IN struct net_device *prNetDev,
 
 			pcCur += (IW_EV_POINT_LEN);
 
-			pcCur += sprintf(pcCur, "wapi_ie=");
+			pcCur += scnprintf(pcCur, pcEnd - pcCur, "wapi_ie=");
 
 			snprintf_hex(pcCur, pcEnd - pcCur, (UINT_8 *) prDesiredIE, prDesiredIE->ucLength + 2);
 
@@ -3896,13 +3896,13 @@ wext_indicate_wext_event(IN P_GLUE_INFO_T prGlueInfo,
 		/* under WE-18, only IWEVCUSTOM can be used */
 		u4Cmd = IWEVCUSTOM;
 		pucExtraInfo = aucExtraInfoBuf;
-		pucExtraInfo += sprintf(pucExtraInfo, "ASSOCINFO(ReqIEs=");
+		pucExtraInfo += scnprintf(pucExtraInfo, sizeof(aucExtraInfoBuf) - (pucExtraInfo - aucExtraInfoBuf), "ASSOCINFO(ReqIEs=");
 		/* printk(KERN_DEBUG "assoc info buffer size needed:%d\n", infoElemLen * 2 + 17); */
 		/* translate binary string to hex string, requirement of IWEVCUSTOM */
 		for (i = 0; i < pucDesiredIE[1] + 2; ++i)
-			pucExtraInfo += sprintf(pucExtraInfo, "%02x", pucDesiredIE[i]);
+			pucExtraInfo += scnprintf(pucExtraInfo, sizeof(aucExtraInfoBuf) - (pucExtraInfo - aucExtraInfoBuf), "%02x", pucDesiredIE[i]);
+		wrqu.data.length = pucExtraInfo - aucExtraInfoBuf;
 		pucExtraInfo = aucExtraInfoBuf;
-		wrqu.data.length = 17 + (pucDesiredIE[1] + 2) * 2;
 #else
 		/* IWEVASSOCREQIE, indicate binary string */
 		pucExtraInfo = pucDesiredIE;

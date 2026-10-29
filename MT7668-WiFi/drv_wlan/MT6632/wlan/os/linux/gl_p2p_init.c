@@ -166,16 +166,21 @@ VOID p2pSetMode(IN UINT_8 ucAPMode)
 {
 	PUCHAR prAPInfName = AP_INF_NAME;
 	PUCHAR prP2PInfName = P2P_INF_NAME;
+#ifdef CFG_DRIVER_INF_NAME_CHANGE
+	static char p2p_name[IFNAMSIZ], ap_name[IFNAMSIZ];
+#endif
 
 #ifdef CFG_DRIVER_INF_NAME_CHANGE
 
 	if (kalStrLen(gprifnamep2p) > 0) {
-		prP2PInfName = kalStrCat(gprifnamep2p, "%d");
+		snprintf(p2p_name, sizeof(p2p_name), "%s%%d", gprifnamep2p);
+		prP2PInfName = p2p_name;
 		DBGLOG(INIT, WARN, "P2P ifname customized, use %s\n", prP2PInfName);
 	}
 
 	if (kalStrLen(gprifnameap) > 0) {
-		prAPInfName = kalStrCat(gprifnameap, "%d");
+		snprintf(ap_name, sizeof(ap_name), "%s%%d", gprifnameap);
+		prAPInfName = ap_name;
 		DBGLOG(INIT, WARN, "AP ifname customized, use %s\n", prAPInfName);
 	}
 

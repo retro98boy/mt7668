@@ -1987,7 +1987,7 @@ static void btmtk_eeprom_bin_file(struct btmtk_sdio_card *card)
 
 	pr_notice("%s: %X series\n", __func__, chipid);
 	cfg_file = E2P_ACCESS_MODE_SWITCHER;
-	sprintf(bin_file, E2P_BIN_FILE, chipid);
+	snprintf(bin_file, sizeof(bin_file), E2P_BIN_FILE, chipid);
 
 	usleep_range(10*1000, 15*1000);
 
@@ -2741,7 +2741,7 @@ static int btmtk_sdio_download_rom_patch(struct btmtk_sdio_card *card)
 	if ((fw_firmware->data[8] >= '0') && (fw_firmware->data[8] <= '9'))
 		memcpy(fw_version_str, fw_firmware->data, FW_VERSION_SIZE - 1);
 	else
-		sprintf(fw_version_str, "%.4s-%.2s-%.2s.%.1s.%.2s.%.1s.%.1s.%.2s",
+		snprintf(fw_version_str, sizeof(fw_version_str), "%.4s-%.2s-%.2s.%.1s.%.2s.%.1s.%.1s.%.2s",
 			fw_firmware->data, fw_firmware->data + 4, fw_firmware->data + 6,
 			fw_firmware->data + 8, fw_firmware->data + 9,
 			fw_firmware->data + 11, fw_firmware->data + 12,

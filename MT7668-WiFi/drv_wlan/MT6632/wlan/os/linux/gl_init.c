@@ -1628,6 +1628,9 @@ static struct wireless_dev *wlanNetCreate(PVOID pvData, PVOID pvDriverData)
 	P_NETDEV_PRIVATE_GLUE_INFO prNetDevPrivate = (P_NETDEV_PRIVATE_GLUE_INFO) NULL;
 
 	PUCHAR prInfName = NULL;
+#ifdef CFG_DRIVER_INF_NAME_CHANGE
+	char ifname[IFNAMSIZ];
+#endif
 
 	if (prWdev == NULL) {
 		DBGLOG(INIT, ERROR, "No wireless dev exist, abort power on\n");
@@ -1661,7 +1664,8 @@ static struct wireless_dev *wlanNetCreate(PVOID pvData, PVOID pvDriverData)
 #ifdef CFG_DRIVER_INF_NAME_CHANGE
 
 	if (kalStrLen(gprifnamesta) > 0) {
-		prInfName = kalStrCat(gprifnamesta, "%d");
+		snprintf(ifname, sizeof(ifname), "%s%%d", gprifnamesta);
+		prInfName = ifname;
 		DBGLOG(INIT, WARN, "Station ifname customized, use %s\n", prInfName);
 	} else
 #endif /* CFG_DRIVER_INF_NAME_CHANGE */

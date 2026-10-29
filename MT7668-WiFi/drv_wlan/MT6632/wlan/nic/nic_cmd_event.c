@@ -1664,14 +1664,6 @@ UINT_32 TsfRawData2IqFmt(P_EVENT_DUMP_MEM_T prEventDumpMem)
 			return -1;
 		}
 		memcpy((UINT_8 *)&icapBusData + ucDstOffset, &prEventDumpMem->aucBuffer[0] + u4SrcOffset, u4CpyLen);
-#if 0
-		if (prEventDumpMem->eIcapContent == ICAP_CONTENT_ADC) {
-			sprintf(aucDataWF0, "%8d,%8d\n", icapBusData.rAdcBusData.u4Dcoc0I,
-				icapBusData.rAdcBusData.u4Dcoc0Q);
-			sprintf(aucDataWF1, "%8d,%8d\n", icapBusData.rAdcBusData.u4Dcoc1I,
-				icapBusData.rAdcBusData.u4Dcoc1Q);
-		}
-#endif
 		if (prEventDumpMem->eIcapContent == ICAP_CONTENT_FIIQ ||
 		    prEventDumpMem->eIcapContent == ICAP_CONTENT_FDIQ) {
 			u4DataWLenF0 = scnprintf(pucDataWF0, u4DataWBufSize, "%8d,%8d\n",

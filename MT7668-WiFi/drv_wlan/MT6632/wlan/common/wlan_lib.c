@@ -5904,7 +5904,7 @@ WLAN_STATUS wlanCheckSystemConfiguration(IN P_ADAPTER_T prAdapter)
 			u4ErrCode |= NVRAM_POWER_LIMIT_TABLE_INVALID;
 #endif
 		if (u4ErrCode != 0) {
-			sprintf(aucErrMsg, VER_ERR_MSG, (unsigned int)u4ErrCode);
+			snprintf(aucErrMsg, sizeof(aucErrMsg), VER_ERR_MSG, (unsigned int)u4ErrCode);
 			COPY_SSID(prSsid->aucSSID, prSsid->ucLength, aucErrMsg, (UINT_8) (strlen(aucErrMsg)));
 
 			kalIndicateBssInfo(prAdapter->prGlueInfo,

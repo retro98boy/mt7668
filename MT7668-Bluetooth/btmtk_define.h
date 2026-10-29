@@ -51,7 +51,7 @@ do {												\
 		char *p_str = str;								\
 		const unsigned char *ptr = p;							\
 		for (raw_count = 0; raw_count < MIN(l, BTMTK_MAX_LOG_LEN); ++raw_count) 	\
-			p_str += sprintf(p_str, " %02X", ptr[raw_count]);			\
+			p_str += scnprintf(p_str, sizeof(str) - (p_str - str), " %02X", ptr[raw_count]);			\
 		*p_str = '\0';									\
 		pr_info("[btmtk_info]"fmt"\n", ##__VA_ARGS__);					\
 		pr_info(" %s:%d - Length(%d): %s\n", __func__, __LINE__, (int)l, str);		\
@@ -64,7 +64,7 @@ do {												\
 		char *p_str = str;								\
 		const unsigned char *ptr = p;							\
 		for (raw_count = 0; raw_count < MIN(l, BTMTK_MAX_LOG_LEN); ++raw_count) 	\
-			p_str += sprintf(p_str, " %02X", ptr[raw_count]);			\
+			p_str += scnprintf(p_str, sizeof(str) - (p_str - str), " %02X", ptr[raw_count]);			\
 		*p_str = '\0';									\
 		pr_debug("[btmtk_debug]"fmt"\n", ##__VA_ARGS__);				\
 		pr_debug(" %s:%d - Length(%d): %s\n", __func__, __LINE__, (int)l, str);		\
