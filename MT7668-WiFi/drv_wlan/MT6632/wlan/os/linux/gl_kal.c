@@ -3480,50 +3480,6 @@ UINT_32 kalGetTxPendingCmdCount(IN P_GLUE_INFO_T prGlueInfo)
 
 /*----------------------------------------------------------------------------*/
 /*!
-* \brief Timer Initialization Procedure
-*
-* \param[in] prGlueInfo     Pointer to GLUE Data Structure
-* \param[in] prTimerHandler Pointer to timer handling function, whose only
-*                           argument is "prAdapter"
-*
-* \retval none
-*
-*/
-/*----------------------------------------------------------------------------*/
-
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(4, 9, 0))
-void (*prTimerHandlerHack)(unsigned long);
-
-static void prTimerHandlerWrapper(struct timer_list *timer)
-{
-
-	P_GLUE_INFO_T prGlueInfo = container_of(timer, GLUE_INFO_T, tickfn);
-
-	prTimerHandlerHack((unsigned long) prGlueInfo);
-}
-#endif
-
-/* static struct timer_list tickfn; */
-
-VOID kalOsTimerInitialize(IN P_GLUE_INFO_T prGlueInfo, IN PVOID prTimerHandler)
-{
-
-	ASSERT(prGlueInfo);
-
-	prTimerHandlerHack = prTimerHandler;
-
-#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
-	init_timer(&(prGlueInfo->tickfn));
-	prGlueInfo->tickfn.function = prTimerHandler;
-	prGlueInfo->tickfn.data = (unsigned long)prGlueInfo;
-#else
-	timer_setup(&prGlueInfo->tickfn, prTimerHandlerWrapper, 0);
-#endif
-}
-
-/* Todo */
-/*----------------------------------------------------------------------------*/
-/*!
 * \brief This routine is called to set the time to do the time out check.
 *
 * \param[in] prGlueInfo Pointer to GLUE Data Structure
@@ -3614,15 +3570,14 @@ UINT_32 kalRandomNumber(VOID)
 /*!
  * \brief command timeout call-back function
  *
- * \param[in] prGlueInfo Pointer to the GLUE data structure.
+ * \param[in] timer Command timeout timer.
  *
  * \retval (none)
  */
 /*----------------------------------------------------------------------------*/
-VOID kalTimeoutHandler(unsigned long arg)
+VOID kalTimeoutHandler(struct timer_list *timer)
 {
-
-	P_GLUE_INFO_T prGlueInfo = (P_GLUE_INFO_T) arg;
+	P_GLUE_INFO_T prGlueInfo = container_of(timer, GLUE_INFO_T, tickfn);
 
 	ASSERT(prGlueInfo);
 

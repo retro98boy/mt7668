@@ -3750,15 +3750,15 @@ static WLAN_STATUS nicTxDirectStartXmitMain(struct sk_buff *prSkb, P_MSDU_INFO_T
 * \brief This function is the timeout function of timer rTxDirectSkbTimer.
 *        The purpose is to check if rTxDirectSkbQueue has any skb to be sent.
 *
-* \param[in] data  Pointer of GlueInfo
+* \param[in] timer  Transmit timer
 *
 * \retval none
 */
 /*----------------------------------------------------------------------------*/
-void nicTxDirectTimerCheckSkbQ(unsigned long data)
+void nicTxDirectTimerCheckSkbQ(struct timer_list *timer)
 {
-	P_GLUE_INFO_T prGlueInfo = (P_GLUE_INFO_T)data;
-	P_ADAPTER_T prAdapter = prGlueInfo->prAdapter;
+	P_ADAPTER_T prAdapter = container_of(timer, ADAPTER_T, rTxDirectSkbTimer);
+	P_GLUE_INFO_T prGlueInfo = prAdapter->prGlueInfo;
 
 	if (skb_queue_len(&prAdapter->rTxDirectSkbQueue))
 		nicTxDirectStartXmit(NULL, prGlueInfo);
@@ -3771,15 +3771,15 @@ void nicTxDirectTimerCheckSkbQ(unsigned long data)
 * \brief This function is the timeout function of timer rTxDirectHifTimer.
 *        The purpose is to check if rStaPsQueue, rBssAbsentQueue, and rTxDirectHifQueue has any MsduInfo to be sent.
 *
-* \param[in] data  Pointer of GlueInfo
+* \param[in] timer  Transmit timer
 *
 * \retval none
 */
 /*----------------------------------------------------------------------------*/
-void nicTxDirectTimerCheckHifQ(unsigned long data)
+void nicTxDirectTimerCheckHifQ(struct timer_list *timer)
 {
-	P_GLUE_INFO_T prGlueInfo = (P_GLUE_INFO_T)data;
-	P_ADAPTER_T prAdapter = prGlueInfo->prAdapter;
+	P_ADAPTER_T prAdapter = container_of(timer, ADAPTER_T, rTxDirectHifTimer);
+	P_GLUE_INFO_T prGlueInfo = prAdapter->prGlueInfo;
 	UINT_8 ucHifTc = 0;
 	UINT_32 u4StaPsBitmap, u4BssAbsentBitmap;
 	UINT_8 ucStaRecIndex, ucBssIndex;

@@ -820,7 +820,6 @@ VOID kalPacketFree(IN P_GLUE_INFO_T prGlueInfo, IN PVOID pvPacket);
 
 PVOID kalPacketAlloc(IN P_GLUE_INFO_T prGlueInfo, IN UINT_32 u4Size, OUT PUINT_8 *ppucData);
 
-VOID kalOsTimerInitialize(IN P_GLUE_INFO_T prGlueInfo, IN PVOID prTimerHandler);
 
 BOOL kalSetTimer(IN P_GLUE_INFO_T prGlueInfo, IN OS_SYSTIME rInterval);
 
@@ -1024,7 +1023,7 @@ VOID kalScanDone(IN P_GLUE_INFO_T prGlueInfo, IN ENUM_KAL_NETWORK_TYPE_INDEX_T e
 
 UINT_32 kalRandomNumber(VOID);
 
-VOID kalTimeoutHandler(unsigned long arg);
+VOID kalTimeoutHandler(struct timer_list *timer);
 
 VOID kalSetEvent(P_GLUE_INFO_T pr);
 

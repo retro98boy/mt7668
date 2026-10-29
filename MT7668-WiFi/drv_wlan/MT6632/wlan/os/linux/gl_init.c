@@ -1745,7 +1745,7 @@ static struct wireless_dev *wlanNetCreate(PVOID pvData, PVOID pvDriverData)
 #endif
 
 	/* initialize timer for OID timeout checker */
-	kalOsTimerInitialize(prGlueInfo, kalTimeoutHandler);
+	timer_setup(&prGlueInfo->tickfn, kalTimeoutHandler, 0);
 
 	for (i = 0; i < SPIN_LOCK_NUM; i++) {
 		spin_lock_init(&prGlueInfo->rSpinLock[i]);
@@ -2129,8 +2129,6 @@ label_exit:
 	return retWlanStat;
 }
 
-
-
 /*----------------------------------------------------------------------------*/
 /*!
 * \brief this function send buffer bin EEPROB_MTxxxx.bin to FW.
@@ -2230,29 +2228,6 @@ label_exit:
 
 	return retWlanStat;
 }
-
-#if KERNEL_VERSION(4, 15, 0) <= LINUX_VERSION_CODE
-static void nicTxDirectTimerCheckSkbQWrapper(struct timer_list *timer)
-{
-	P_ADAPTER_T prAdapter =
-		container_of(timer, ADAPTER_T, rTxDirectSkbTimer);
-	P_GLUE_INFO_T prGlueInfo =
-		container_of(prAdapter, GLUE_INFO_T, prAdapter);
-
-	nicTxDirectTimerCheckSkbQ((unsigned long) prGlueInfo);
-}
-
-
-static void nicTxDirectTimerCheckHifQWrapper(struct timer_list *timer)
-{
-	P_ADAPTER_T prAdapter =
-		container_of(timer, ADAPTER_T, rTxDirectHifTimer);
-	P_GLUE_INFO_T prGlueInfo =
-		container_of(prAdapter, GLUE_INFO_T, prAdapter);
-
-	nicTxDirectTimerCheckHifQ((unsigned long) prGlueInfo);
-}
-#endif
 
 /*----------------------------------------------------------------------------*/
 /*!
@@ -2400,22 +2375,8 @@ static INT_32 wlanProbe(PVOID pvData, PVOID pvDriverData)
 			if (!prAdapter->fgTxDirectInited) {
 				skb_queue_head_init(&prAdapter->rTxDirectSkbQueue);
 
-#if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
-				init_timer(&prAdapter->rTxDirectSkbTimer);
-				prAdapter->rTxDirectSkbTimer.data = (unsigned long)prGlueInfo;
-				prAdapter->rTxDirectSkbTimer.function = nicTxDirectTimerCheckSkbQ;
-
-				init_timer(&prAdapter->rTxDirectHifTimer);
-				prAdapter->rTxDirectHifTimer.data = (unsigned long)prGlueInfo;
-				prAdapter->rTxDirectHifTimer.function = nicTxDirectTimerCheckHifQ;
-#else
-				timer_setup(&prAdapter->rTxDirectSkbTimer,
-					    nicTxDirectTimerCheckSkbQWrapper,
-					    0);
-				timer_setup(&prAdapter->rTxDirectHifTimer,
-					    nicTxDirectTimerCheckHifQWrapper,
-					    0);
-#endif
+				timer_setup(&prAdapter->rTxDirectSkbTimer, nicTxDirectTimerCheckSkbQ, 0);
+				timer_setup(&prAdapter->rTxDirectHifTimer, nicTxDirectTimerCheckHifQ, 0);
 
 				prAdapter->fgTxDirectInited = TRUE;
 			}
