@@ -5017,17 +5017,12 @@ static ssize_t kalMetPortWriteProcfs(struct file *file, const char __user *buffe
 	return count;
 }
 
-#if 0
-const struct file_operations rMetProcFops = {
-	.write = kalMetWriteProcfs
-};
-#endif
-const struct file_operations rMetProcCtrlFops = {
-	.write = kalMetCtrlWriteProcfs
+static const struct proc_ops met_ctrl_ops = {
+	.proc_write = kalMetCtrlWriteProcfs
 };
 
-const struct file_operations rMetProcPortFops = {
-	.write = kalMetPortWriteProcfs
+static const struct proc_ops met_port_ops = {
+	.proc_write = kalMetPortWriteProcfs
 };
 
 int kalMetInitProcfs(IN P_GLUE_INFO_T prGlueInfo)
@@ -5047,9 +5042,8 @@ int kalMetInitProcfs(IN P_GLUE_INFO_T prGlueInfo)
 	 *  /proc/net/wlan0
 	 *  |-- met_ctrl         (PROC_MET_PROF_CTRL)
 	 */
-	/* proc_create(PROC_MET_PROF_CTRL, 0x0644, pMetProcDir, &rMetProcFops); */
-	proc_create(PROC_MET_PROF_CTRL, 0, pMetProcDir, &rMetProcCtrlFops);
-	proc_create(PROC_MET_PROF_PORT, 0, pMetProcDir, &rMetProcPortFops);
+	proc_create(PROC_MET_PROF_CTRL, 0, pMetProcDir, &met_ctrl_ops);
+	proc_create(PROC_MET_PROF_PORT, 0, pMetProcDir, &met_port_ops);
 
 	pMetGlobalData = (void *)prGlueInfo;
 

@@ -926,49 +926,43 @@ out:
 	return ret;
 }
 
-static const struct file_operations dbglevel_ops = {
-	.owner = THIS_MODULE,
-	.read = procDbgLevelRead,
-	.write = procDbgLevelWrite,
+static const struct proc_ops dbglevel_ops = {
+	.proc_read = procDbgLevelRead,
+	.proc_write = procDbgLevelWrite,
 };
 
 
-static const struct file_operations csidata_ops = {
-	.owner = THIS_MODULE,
-	.read = procCsiDataRead,
-	.open = procCsiDataOpen,
-	.release = procCsiDataRelease,
+static const struct proc_ops csidata_ops = {
+	.proc_read = procCsiDataRead,
+	.proc_open = procCsiDataOpen,
+	.proc_release = procCsiDataRelease,
 };
 
 
 #if WLAN_INCLUDE_PROC
 #if	CFG_SUPPORT_EASY_DEBUG
 
-static const struct file_operations efusedump_ops = {
-	.owner	 = THIS_MODULE,
-	.open	 = procEfuseDumpOpen,
-	.read	 = seq_read,
-	.llseek  = seq_lseek,
-	.release = seq_release,
+static const struct proc_ops efusedump_ops = {
+	.proc_open	 = procEfuseDumpOpen,
+	.proc_read	 = seq_read,
+	.proc_lseek  = seq_lseek,
+	.proc_release = seq_release,
 };
 
-static const struct file_operations drivercmd_ops = {
-	.owner = THIS_MODULE,
-	.read = procDriverCmdRead,
-	.write = procDriverCmdWrite,
+static const struct proc_ops drivercmd_ops = {
+	.proc_read = procDriverCmdRead,
+	.proc_write = procDriverCmdWrite,
 };
 
-static const struct file_operations cfg_ops = {
-	.owner = THIS_MODULE,
-	.read = procCfgRead,
-	.write = procCfgWrite,
+static const struct proc_ops cfg_ops = {
+	.proc_read = procCfgRead,
+	.proc_write = procCfgWrite,
 };
 #endif
 #endif
 
-static const struct file_operations get_txpwr_tbl_ops = {
-	.owner	 = THIS_MODULE,
-	.read = procGetTxpwrTblRead,
+static const struct proc_ops get_txpwr_tbl_ops = {
+	.proc_read = procGetTxpwrTblRead,
 };
 
 /*******************************************************************************
@@ -1092,10 +1086,9 @@ static ssize_t procMCRWrite(struct file *file, const char __user *buffer,
 
 }				/* end of procMCRWrite() */
 
-static const struct file_operations mcr_ops = {
-	.owner = THIS_MODULE,
-	.read = procMCRRead,
-	.write = procMCRWrite,
+static const struct proc_ops mcr_ops = {
+	.proc_read = procMCRRead,
+	.proc_write = procMCRWrite,
 };
 
 #if CFG_SUPPORT_DEBUG_FS
@@ -1159,10 +1152,9 @@ static ssize_t procRoamWrite(struct file *file, const char __user *buffer,
 	return count;
 }
 
-static const struct file_operations roam_ops = {
-	.owner = THIS_MODULE,
-	.read = procRoamRead,
-	.write = procRoamWrite,
+static const struct proc_ops roam_ops = {
+	.proc_read = procRoamRead,
+	.proc_write = procRoamWrite,
 };
 
 static ssize_t procCountryRead(struct file *filp, char __user *buf, size_t count, loff_t *f_pos)
@@ -1226,10 +1218,9 @@ static ssize_t procCountryWrite(struct file *file, const char __user *buffer,
 	return count;
 }
 
-static const struct file_operations country_ops = {
-	.owner = THIS_MODULE,
-	.read = procCountryRead,
-	.write = procCountryWrite,
+static const struct proc_ops country_ops = {
+	.proc_read = procCountryRead,
+	.proc_write = procCountryWrite,
 };
 #endif
 

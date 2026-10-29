@@ -120,10 +120,11 @@ static int print_dump_data_counter;
 	static int fw_dump_file;
 #endif
 
-const struct file_operations BT_proc_fops = {
-	.open = btmtk_proc_open,
-	.read = seq_read,
-	.release = single_release,
+static const struct proc_ops btmtk_proc_ops = {
+	.proc_open = btmtk_proc_open,
+	.proc_read = seq_read,
+	.proc_release = single_release,
+	.proc_lseek = seq_lseek,
 };
 
 static const struct btmtk_sdio_card_reg btmtk_reg_6630 = {
@@ -5767,7 +5768,7 @@ void btmtk_proc_create_new_entry(void)
 		pr_info("Unable to creat dir");
 		return;
 	}
-	proc_show_entry =  proc_create("bt_fw_version", 0644, g_proc_dir, &BT_proc_fops);
+	proc_show_entry =  proc_create("bt_fw_version", 0644, g_proc_dir, &btmtk_proc_ops);
 }
 
 
