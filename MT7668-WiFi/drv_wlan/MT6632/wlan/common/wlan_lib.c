@@ -2452,13 +2452,13 @@ VOID wlanImageSectionGetPatchInfo(IN P_ADAPTER_T prAdapter,
 	*pu4DataMode = u4DataMode;
 
 	/* Dump image information */
-	kalStrnCpy(aucBuffer, prPatchFormat->aucPlatform, 4);
-	aucBuffer[4] = '\0';
+	memcpy(aucBuffer, prPatchFormat->aucPlatform, sizeof(prPatchFormat->aucPlatform));
+	aucBuffer[sizeof(prPatchFormat->aucPlatform)] = '\0';
 	DBGLOG(INIT, INFO, "PATCH INFO: platform[%s] HW/SW ver[0x%04X] ver[0x%04X]\n",
 	       aucBuffer, prPatchFormat->u4SwHwVersion, prPatchFormat->u4PatchVersion);
 
-	kalStrnCpy(aucBuffer, prPatchFormat->aucBuildDate, 16);
-	aucBuffer[16] = '\0';
+	memcpy(aucBuffer, prPatchFormat->aucBuildDate, sizeof(prPatchFormat->aucBuildDate));
+	aucBuffer[sizeof(prPatchFormat->aucBuildDate)] = '\0';
 	DBGLOG(INIT, INFO, "date[%s]\n", aucBuffer);
 
 	/* Backup to FW version info */
@@ -4749,10 +4749,10 @@ VOID wlanPrintVersion(IN P_ADAPTER_T prAdapter)
 		wlanGetPatchInfo(prAdapter);
 	}
 
-	kalStrnCpy(aucBuf, prVerInfo->rPatchHeader.aucPlatform, 4);
-	aucBuf[4] = '\0';
-	kalStrnCpy(aucDate, prVerInfo->rPatchHeader.aucBuildDate, 16);
-	aucDate[16] = '\0';
+	memcpy(aucBuf, prVerInfo->rPatchHeader.aucPlatform, sizeof(prVerInfo->rPatchHeader.aucPlatform));
+	aucBuf[sizeof(prVerInfo->rPatchHeader.aucPlatform)] = '\0';
+	memcpy(aucDate, prVerInfo->rPatchHeader.aucBuildDate, sizeof(prVerInfo->rPatchHeader.aucBuildDate));
+	aucDate[sizeof(prVerInfo->rPatchHeader.aucBuildDate)] = '\0';
 	DBGLOG(SW4, INFO, "Patch platform %s version 0x%04X %s\n",
 		aucBuf, prVerInfo->rPatchHeader.u4PatchVersion, aucDate);
 
@@ -7064,7 +7064,7 @@ VOID wlanCfgSetChip(IN P_ADAPTER_T prAdapter)
 
 		rChipConfigInfo.ucType = CHIP_CONFIG_TYPE_WO_RESPONSE;
 		rChipConfigInfo.u2MsgSize = kalStrnLen(aucValue, WLAN_CFG_VALUE_LEN_MAX);
-		kalStrnCpy(rChipConfigInfo.aucCmd, aucValue, CHIP_CONFIG_RESP_SIZE);
+		strscpy_pad(rChipConfigInfo.aucCmd, aucValue, sizeof(rChipConfigInfo.aucCmd));
 
 		rStatus = kalIoctl(prGlueInfo,
 				   wlanoidSetChipConfig,
@@ -7258,12 +7258,12 @@ WLAN_STATUS wlanCfgGet(IN P_ADAPTER_T prAdapter, const PCHAR pucKey, PCHAR pucVa
 	prWlanCfgEntry = wlanCfgGetEntry(prAdapter, pucKey, FALSE);
 
 	if (prWlanCfgEntry) {
-		kalStrnCpy(pucValue, prWlanCfgEntry->aucValue, WLAN_CFG_VALUE_LEN_MAX - 1);
+		strscpy_pad(pucValue, prWlanCfgEntry->aucValue, WLAN_CFG_VALUE_LEN_MAX);
 		return WLAN_STATUS_SUCCESS;
 	}
-		if (pucValueDef)
-			kalStrnCpy(pucValue, pucValueDef, WLAN_CFG_VALUE_LEN_MAX - 1);
-		return WLAN_STATUS_FAILURE;
+	if (pucValueDef)
+		strscpy_pad(pucValue, pucValueDef, WLAN_CFG_VALUE_LEN_MAX);
+	return WLAN_STATUS_FAILURE;
 
 
 }
@@ -7394,13 +7394,11 @@ WLAN_STATUS wlanCfgSet(IN P_ADAPTER_T prAdapter, const PCHAR pucKey, PCHAR pucVa
 
 	if (prWlanCfgEntry) {
 		if (ucExist == 0) {
-			kalStrnCpy(prWlanCfgEntry->aucKey, pucKey, WLAN_CFG_KEY_LEN_MAX - 1);
-			prWlanCfgEntry->aucKey[WLAN_CFG_KEY_LEN_MAX - 1] = '\0';
+			strscpy_pad(prWlanCfgEntry->aucKey, pucKey, sizeof(prWlanCfgEntry->aucKey));
 		}
 
 		if (pucValue && pucValue[0] != '\0') {
-			kalStrnCpy(prWlanCfgEntry->aucValue, pucValue, WLAN_CFG_VALUE_LEN_MAX - 1);
-			prWlanCfgEntry->aucValue[WLAN_CFG_VALUE_LEN_MAX - 1] = '\0';
+			strscpy_pad(prWlanCfgEntry->aucValue, pucValue, sizeof(prWlanCfgEntry->aucValue));
 
 			if (ucExist) {
 				if (prWlanCfgEntry->pfSetCb)
@@ -7730,7 +7728,7 @@ wlanCfgParseAddEntry(IN P_ADAPTER_T prAdapter,
 	if (u4Len >= WLAN_CFG_KEY_LEN_MAX)
 		u4Len = WLAN_CFG_KEY_LEN_MAX - 1;
 
-	kalStrnCpy(aucKey, pucKeyHead, u4Len);
+	memcpy(aucKey, pucKeyHead, u4Len);
 
 	if (pucValueTail) {
 		if (pucValueHead > pucValueTail)
@@ -7742,7 +7740,7 @@ wlanCfgParseAddEntry(IN P_ADAPTER_T prAdapter,
 	if (u4Len >= WLAN_CFG_VALUE_LEN_MAX)
 		u4Len = WLAN_CFG_VALUE_LEN_MAX - 1;
 
-	kalStrnCpy(aucValue, pucValueHead, u4Len);
+	memcpy(aucValue, pucValueHead, u4Len);
 
 	return wlanCfgSet(prAdapter, aucKey, aucValue, 0);
 }
@@ -7785,16 +7783,23 @@ WLAN_STATUS wlanCfgParseToFW(PCHAR *args, PCHAR args_size, UCHAR nargs, PCHAR bu
 #else
 	cmd_v1.itemType = ITEM_TYPE_DEC;
 #endif
-	if (buffer == NULL ||
-		args_size[ED_STRING_SITE] == 0 ||
-		args_size[ED_VALUE_SITE] == 0 ||
+	if (args == NULL || args_size == NULL || buffer == NULL ||
+		nargs <= ED_VALUE_SITE || times >= MAX_CMD_ITEM_MAX) {
+		DBGLOG(INIT, ERROR, "cfg args wrong\n");
+		return WLAN_STATUS_FAILURE;
+	}
+	if (args[ED_STRING_SITE] == NULL || args[ED_VALUE_SITE] == NULL ||
+		args_size[ED_STRING_SITE] <= 0 ||
+		args_size[ED_STRING_SITE] > sizeof(cmd_v1.itemString) ||
+		args_size[ED_VALUE_SITE] <= 0 ||
 		(cmd_v1.itemType < ITEM_TYPE_DEC || cmd_v1.itemType > ITEM_TYPE_STR)) {
 		DBGLOG(INIT, ERROR, "cfg args wrong\n");
 		return WLAN_STATUS_FAILURE;
 	}
 
 	cmd_v1.itemStringLength = args_size[ED_STRING_SITE];
-	strncpy(cmd_v1.itemString, args[ED_STRING_SITE],  cmd_v1.itemStringLength);
+	memcpy(cmd_v1.itemString, args[ED_STRING_SITE],
+	       strnlen(args[ED_STRING_SITE], cmd_v1.itemStringLength));
 	DBGLOG(INIT, INFO, "itemString:");
 	for (i = 0; i <  cmd_v1.itemStringLength; i++)
 		DBGLOG(INIT, INFO, "%c", cmd_v1.itemString[i]);
@@ -7843,8 +7848,11 @@ WLAN_STATUS wlanCfgParseToFW(PCHAR *args, PCHAR args_size, UCHAR nargs, PCHAR bu
 		} while (sum > 0);
 		cmd_v1.itemValueLength = bufferindex;
 	} else if (cmd_v1.itemType == ITEM_TYPE_STR) {
+		if (args_size[ED_VALUE_SITE] > sizeof(cmd_v1.itemValue))
+			return WLAN_STATUS_FAILURE;
 		cmd_v1.itemValueLength = args_size[ED_VALUE_SITE];
-		strncpy(cmd_v1.itemValue, args[ED_VALUE_SITE], cmd_v1.itemValueLength);
+		memcpy(cmd_v1.itemValue, args[ED_VALUE_SITE],
+		       strnlen(args[ED_VALUE_SITE], cmd_v1.itemValueLength));
 	}
 
 	DBGLOG(INIT, INFO, "Length = %d itemValue:", cmd_v1.itemValueLength);

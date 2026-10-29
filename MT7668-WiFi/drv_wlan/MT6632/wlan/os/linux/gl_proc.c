@@ -718,13 +718,13 @@ void print_txpwr_tbl(struct txpwr_table *txpwr_tbl, unsigned char ch,
 
 			switch (stream_idx) {
 			case STREAM_SISO:
-				kalStrnCpy(prefix, "siso", sizeof(prefix));
+				strscpy(prefix, "siso", sizeof(prefix));
 				break;
 			case STREAM_CDD:
-				kalStrnCpy(prefix, "cdd", sizeof(prefix));
+				strscpy(prefix, "cdd", sizeof(prefix));
 				break;
 			case STREAM_MIMO:
-				kalStrnCpy(prefix, "mimo", sizeof(prefix));
+				strscpy(prefix, "mimo", sizeof(prefix));
 				break;
 			default:
 				break;
@@ -748,9 +748,9 @@ void print_txpwr_tbl(struct txpwr_table *txpwr_tbl, unsigned char ch,
 				tmp_pwr = (tmp_pwr > 0) ? tmp_pwr : 0;
 
 				if (pwr_idx + 1 == TXPWR_TBL_NUM)
-					kalStrnCpy(tmp, "\n", sizeof(tmp));
+					strscpy(tmp, "\n", sizeof(tmp));
 				else
-					kalStrnCpy(tmp, ", ", sizeof(tmp));
+					strscpy(tmp, ", ", sizeof(tmp));
 				*pos += kalScnprintf(buf + *pos, TMP_SZ - *pos,
 						     "%d.%d%s",
 						     tmp_pwr / 2,

@@ -602,8 +602,6 @@ batchConvertResult(IN P_EVENT_BATCH_RESULT_T prEventBatchResult,
 			continue;
 		}
 
-		nleft -= 5;	/* -5 for "####\n" */
-
 		/* We only support one round scan result now. */
 		nsize1 = scnprintf(text1, TMP_TEXT_LEN_S, "apcount=%d\n", pBr->ucScanCount);
 		if (nsize1 < nleft) {
@@ -634,13 +632,13 @@ batchConvertResult(IN P_EVENT_BATCH_RESULT_T prEventBatchResult,
 			nsize = nsize1 + nsize2 + nsize3;
 			if (nsize < nleft) {
 
-				kalStrnCpy(p, text1, TMP_TEXT_LEN_S);
+				memcpy(p, text1, nsize1);
 				p += nsize1;
 
-				kalStrnCpy(p, text2, TMP_TEXT_LEN_L);
+				memcpy(p, text2, nsize2);
 				p += nsize2;
 
-				kalStrnCpy(p, text3, TMP_TEXT_LEN_L);
+				memcpy(p, text3, nsize3 + 1);
 				p += nsize3;
 
 				nleft -= nsize;
@@ -662,9 +660,10 @@ batchConvertResult(IN P_EVENT_BATCH_RESULT_T prEventBatchResult,
 	}
 
 	nsize1 = scnprintf(text1, TMP_TEXT_LEN_S, "%s", "----\n");
-	if (nsize1 < nleft)
-		scnprintf(p, nleft, "%s", text1);
-	else
+	if (nsize1 < nleft) {
+		nsize1 = scnprintf(p, nleft, "%s", text1);
+		nleft -= nsize1;
+	} else
 		goto short_buf;
 
 	*pu4RetLen = u4MaxBufferLen - nleft;
@@ -6958,8 +6957,8 @@ int priv_driver_set_cfg(IN struct net_device *prNetDev, IN char *pcCommand, IN i
 
 		/* wlanCfgSet(prAdapter, apcArgv[1], apcArgv[2], 0); */
 		/* Call by  wlanoid because the set_cfg will trigger callback */
-		kalStrnCpy(rKeyCfgInfo.aucKey, apcArgv[1], WLAN_CFG_KEY_LEN_MAX);
-		kalStrnCpy(rKeyCfgInfo.aucValue, ucTmp, WLAN_CFG_KEY_LEN_MAX);
+		strscpy_pad(rKeyCfgInfo.aucKey, apcArgv[1], sizeof(rKeyCfgInfo.aucKey));
+		strscpy_pad(rKeyCfgInfo.aucValue, ucTmp, sizeof(rKeyCfgInfo.aucValue));
 		rStatus = kalIoctl(prGlueInfo,
 				   wlanoidSetKeyCfg, &rKeyCfgInfo, sizeof(rKeyCfgInfo), FALSE, FALSE, TRUE, &u4BufLen);
 
@@ -6983,6 +6982,8 @@ int priv_driver_get_cfg(IN struct net_device *prNetDev, IN char *pcCommand, IN i
 	ASSERT(prNetDev);
 	if (GLUE_CHK_PR2(prNetDev, pcCommand) == FALSE)
 		return -1;
+	if (i4TotalLen <= 0 || strnlen(pcCommand, i4TotalLen) == i4TotalLen)
+		return -EINVAL;
 
 	prGlueInfo = *((P_GLUE_INFO_T *) netdev_priv(prNetDev));
 
@@ -6994,8 +6995,7 @@ int priv_driver_get_cfg(IN struct net_device *prNetDev, IN char *pcCommand, IN i
 	if (i4Argc >= 2) {
 		/* by wlanoid ? */
 		if (wlanCfgGet(prAdapter, apcArgv[1], aucValue, "", 0) == WLAN_STATUS_SUCCESS) {
-			kalStrnCpy(pcCommand, aucValue, WLAN_CFG_VALUE_LEN_MAX);
-			i4BytesWritten = kalStrnLen(pcCommand, WLAN_CFG_VALUE_LEN_MAX);
+			i4BytesWritten = strscpy(pcCommand, aucValue, i4TotalLen);
 		}
 	}
 
@@ -7012,6 +7012,7 @@ int priv_driver_set_chip_config(IN struct net_device *prNetDev, IN char *pcComma
 	INT_32 i4BytesWritten = 0;
 	UINT_32 u4CmdLen = 0;
 	UINT_32 u4PrefixLen = 0;
+	ssize_t copied;
 	/* INT_32 i4Argc = 0; */
 	/* PCHAR  apcArgv[WLAN_CFG_ARGV_MAX] = {0}; */
 
@@ -7020,6 +7021,11 @@ int priv_driver_set_chip_config(IN struct net_device *prNetDev, IN char *pcComma
 	ASSERT(prNetDev);
 	if (GLUE_CHK_PR2(prNetDev, pcCommand) == FALSE)
 		return -1;
+	if (i4TotalLen <= 0)
+		return -EINVAL;
+	u4CmdLen = kalStrnLen(pcCommand, i4TotalLen);
+	if (u4CmdLen == i4TotalLen)
+		return -EINVAL;
 	prGlueInfo = *((P_GLUE_INFO_T *) netdev_priv(prNetDev));
 	prAdapter = prGlueInfo->prAdapter;
 
@@ -7027,7 +7033,6 @@ int priv_driver_set_chip_config(IN struct net_device *prNetDev, IN char *pcComma
 	/* wlanCfgParseArgument(pcCommand, &i4Argc, apcArgv); */
 	/* DBGLOG(REQ, LOUD,("argc is %i\n",i4Argc)); */
 	/*  */
-	u4CmdLen = kalStrnLen(pcCommand, i4TotalLen);
 	u4PrefixLen = kalStrLen(CMD_SET_CHIP) + 1 /*space */;
 
 	kalMemZero(&rChipConfigInfo, sizeof(rChipConfigInfo));
@@ -7036,10 +7041,11 @@ int priv_driver_set_chip_config(IN struct net_device *prNetDev, IN char *pcComma
 	if (u4CmdLen > u4PrefixLen) {
 
 		rChipConfigInfo.ucType = CHIP_CONFIG_TYPE_WO_RESPONSE;
-		/* rChipConfigInfo.u2MsgSize = kalStrnLen(apcArgv[1],CHIP_CONFIG_RESP_SIZE); */
-		rChipConfigInfo.u2MsgSize = u4CmdLen - u4PrefixLen;
-		/* kalStrnCpy(rChipConfigInfo.aucCmd,apcArgv[1],CHIP_CONFIG_RESP_SIZE); */
-		kalStrnCpy(rChipConfigInfo.aucCmd, pcCommand + u4PrefixLen, CHIP_CONFIG_RESP_SIZE - 1);
+		copied = strscpy_pad(rChipConfigInfo.aucCmd, pcCommand + u4PrefixLen,
+				     sizeof(rChipConfigInfo.aucCmd));
+		if (copied < 0)
+			return copied;
+		rChipConfigInfo.u2MsgSize = copied;
 
 		rStatus = kalIoctl(prGlueInfo,
 				   wlanoidSetChipConfig,
@@ -7119,6 +7125,7 @@ int priv_driver_get_chip_config(IN struct net_device *prNetDev, IN char *pcComma
 	UINT_32 u2MsgSize = 0;
 	UINT_32 u4CmdLen = 0;
 	UINT_32 u4PrefixLen = 0;
+	ssize_t copied;
 	/* INT_32 i4Argc = 0; */
 	/* PCHAR  apcArgv[WLAN_CFG_ARGV_MAX]; */
 
@@ -7127,6 +7134,11 @@ int priv_driver_get_chip_config(IN struct net_device *prNetDev, IN char *pcComma
 	ASSERT(prNetDev);
 	if (GLUE_CHK_PR2(prNetDev, pcCommand) == FALSE)
 		return -1;
+	if (i4TotalLen <= 0)
+		return -EINVAL;
+	u4CmdLen = kalStrnLen(pcCommand, i4TotalLen);
+	if (u4CmdLen == i4TotalLen)
+		return -EINVAL;
 
 	prGlueInfo = *((P_GLUE_INFO_T *) netdev_priv(prNetDev));
 	prAdapter = prGlueInfo->prAdapter;
@@ -7135,16 +7147,17 @@ int priv_driver_get_chip_config(IN struct net_device *prNetDev, IN char *pcComma
 	/* wlanCfgParseArgument(pcCommand, &i4Argc, apcArgv); */
 	/* DBGLOG(REQ, LOUD,("argc is %i\n",i4Argc)); */
 
-	u4CmdLen = kalStrnLen(pcCommand, i4TotalLen);
 	u4PrefixLen = kalStrLen(CMD_GET_CHIP) + 1 /*space */;
+	kalMemZero(&rChipConfigInfo, sizeof(rChipConfigInfo));
 
 	/* if(i4Argc >= 2) { */
 	if (u4CmdLen > u4PrefixLen) {
 		rChipConfigInfo.ucType = CHIP_CONFIG_TYPE_ASCII;
-		/* rChipConfigInfo.u2MsgSize = kalStrnLen(apcArgv[1],CHIP_CONFIG_RESP_SIZE); */
-		rChipConfigInfo.u2MsgSize = u4CmdLen - u4PrefixLen;
-		/* kalStrnCpy(rChipConfigInfo.aucCmd,apcArgv[1],CHIP_CONFIG_RESP_SIZE); */
-		kalStrnCpy(rChipConfigInfo.aucCmd, pcCommand + u4PrefixLen, CHIP_CONFIG_RESP_SIZE - 1);
+		copied = strscpy_pad(rChipConfigInfo.aucCmd, pcCommand + u4PrefixLen,
+				     sizeof(rChipConfigInfo.aucCmd));
+		if (copied < 0)
+			return copied;
+		rChipConfigInfo.u2MsgSize = copied;
 		rStatus = kalIoctl(prGlueInfo,
 				   wlanoidQueryChipConfig,
 				   &rChipConfigInfo, sizeof(rChipConfigInfo), TRUE, TRUE, TRUE, &u4BufLen);
@@ -8698,10 +8711,10 @@ static int priv_driver_get_version(IN struct net_device *prNetDev, IN char *pcCo
 
 	wlanPrintVersion(prAdapter);
 
-	kalStrnCpy(aucBuf, prVerInfo->aucFwBranchInfo, 4);
-	aucBuf[4] = '\0';
-	kalStrnCpy(aucDate, prVerInfo->aucFwDateCode, 16);
-	aucDate[16] = '\0';
+	memcpy(aucBuf, prVerInfo->aucFwBranchInfo, sizeof(prVerInfo->aucFwBranchInfo));
+	aucBuf[sizeof(prVerInfo->aucFwBranchInfo)] = '\0';
+	memcpy(aucDate, prVerInfo->aucFwDateCode, sizeof(prVerInfo->aucFwDateCode));
+	aucDate[sizeof(prVerInfo->aucFwDateCode)] = '\0';
 	u4Offset += snprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
 	"\nN9 FW version %s-%u.%u.%u[DEC] (%s)\n", aucBuf, (prVerInfo->u2FwOwnVersion >> 8),
 	(prVerInfo->u2FwOwnVersion & BITS(0, 7)), prVerInfo->ucFwBuildNumber, aucDate);
@@ -8771,10 +8784,10 @@ static int priv_driver_get_version(IN struct net_device *prNetDev, IN char *pcCo
 		wlanGetPatchInfo(prAdapter);
 	}
 
-	kalStrnCpy(aucBuf, prVerInfo->rPatchHeader.aucPlatform, 4);
-	aucBuf[4] = '\0';
-	kalStrnCpy(aucDate, prVerInfo->rPatchHeader.aucBuildDate, 16);
-	aucDate[16] = '\0';
+	memcpy(aucBuf, prVerInfo->rPatchHeader.aucPlatform, sizeof(prVerInfo->rPatchHeader.aucPlatform));
+	aucBuf[sizeof(prVerInfo->rPatchHeader.aucPlatform)] = '\0';
+	memcpy(aucDate, prVerInfo->rPatchHeader.aucBuildDate, sizeof(prVerInfo->rPatchHeader.aucBuildDate));
+	aucDate[sizeof(prVerInfo->rPatchHeader.aucBuildDate)] = '\0';
 	u4Offset += snprintf(pcCommand + u4Offset, i4TotalLen - u4Offset,
 		"Patch platform %s version 0x%04X %s\n",
 		aucBuf, prVerInfo->rPatchHeader.u4PatchVersion, aucDate);
