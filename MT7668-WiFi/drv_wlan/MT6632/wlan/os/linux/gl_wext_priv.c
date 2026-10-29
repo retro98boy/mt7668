@@ -2828,12 +2828,12 @@ static int priv_driver_get_sta_statistics(IN struct net_device *prNetDev, IN cha
 	rQueryStaStatistics.ucReadClear = TRUE;
 
 	if (i4Argc >= i4ArgNum) {
-		if (strnicmp(apcArgv[1], CMD_GET_STA_KEEP_CNT,
+		if (strncasecmp(apcArgv[1], CMD_GET_STA_KEEP_CNT,
 			strlen(CMD_GET_STA_KEEP_CNT)) == 0) {
 			wlanHwAddrToBin(apcArgv[2],
 			&rQueryStaStatistics.aucMacAddr[0]);
 			rQueryStaStatistics.ucReadClear = FALSE;
-		} else if (strnicmp(apcArgv[2], CMD_GET_STA_KEEP_CNT,
+		} else if (strncasecmp(apcArgv[2], CMD_GET_STA_KEEP_CNT,
 			strlen(CMD_GET_STA_KEEP_CNT)) == 0) {
 			wlanHwAddrToBin(apcArgv[1],
 			&rQueryStaStatistics.aucMacAddr[0]);
@@ -2854,7 +2854,7 @@ static int priv_driver_get_sta_statistics(IN struct net_device *prNetDev, IN cha
 		}
 
 		if (i4Argc == 2) {
-			if (strnicmp(apcArgv[1], CMD_GET_STA_KEEP_CNT, strlen(CMD_GET_STA_KEEP_CNT)) == 0)
+			if (strncasecmp(apcArgv[1], CMD_GET_STA_KEEP_CNT, strlen(CMD_GET_STA_KEEP_CNT)) == 0)
 				rQueryStaStatistics.ucReadClear = FALSE;
 		}
 	}
@@ -3365,10 +3365,10 @@ static int priv_driver_get_sta_info(IN struct net_device *prNetDev, IN char *pcC
 
 	/* DBGLOG(RSN, INFO, "MT6632 : priv_driver_get_sta_info\n"); */
 	if (i4Argc >= 3) {
-		if (strnicmp(apcArgv[1], CMD_GET_STA_KEEP_CNT, strlen(CMD_GET_STA_KEEP_CNT)) == 0) {
+		if (strncasecmp(apcArgv[1], CMD_GET_STA_KEEP_CNT, strlen(CMD_GET_STA_KEEP_CNT)) == 0) {
 			wlanHwAddrToBin(apcArgv[2], &aucMacAddr[0]);
 			rQueryStaStatistics.ucReadClear = FALSE;
-		} else if (strnicmp(apcArgv[2], CMD_GET_STA_KEEP_CNT, strlen(CMD_GET_STA_KEEP_CNT)) == 0) {
+		} else if (strncasecmp(apcArgv[2], CMD_GET_STA_KEEP_CNT, strlen(CMD_GET_STA_KEEP_CNT)) == 0) {
 			wlanHwAddrToBin(apcArgv[1], &aucMacAddr[0]);
 			rQueryStaStatistics.ucReadClear = FALSE;
 		}
@@ -3383,7 +3383,7 @@ static int priv_driver_get_sta_info(IN struct net_device *prNetDev, IN char *pcC
 			return i4BytesWritten;
 
 		if (i4Argc == 2) {
-			if (strnicmp(apcArgv[1], CMD_GET_STA_KEEP_CNT, strlen(CMD_GET_STA_KEEP_CNT)) == 0)
+			if (strncasecmp(apcArgv[1], CMD_GET_STA_KEEP_CNT, strlen(CMD_GET_STA_KEEP_CNT)) == 0)
 				rQueryStaStatistics.ucReadClear = FALSE;
 		}
 	}
@@ -5168,7 +5168,7 @@ static int priv_driver_get_sta_stat(IN struct net_device *prNetDev, IN char *pcC
 	DBGLOG(REQ, LOUD, "argc is %i\n", i4Argc);
 
 	if (i4Argc >= 3) {
-		if (strnicmp(apcArgv[1], CMD_STAT_GROUP_SEL, strlen(CMD_STAT_GROUP_SEL)) == 0) {
+		if (strncasecmp(apcArgv[1], CMD_STAT_GROUP_SEL, strlen(CMD_STAT_GROUP_SEL)) == 0) {
 			u4Ret = kalkStrtou32(apcArgv[2], 0, &(u4StatGroup));
 			if (u4Ret)
 				DBGLOG(REQ, LOUD, "parse get_mcr error (Address) u4Ret=%d\n", u4Ret);
@@ -5182,10 +5182,10 @@ static int priv_driver_get_sta_stat(IN struct net_device *prNetDev, IN char *pcC
 				goto out;
 			}
 		} else {
-			if (strnicmp(apcArgv[1], CMD_STAT_RESET_CNT, strlen(CMD_STAT_RESET_CNT)) == 0) {
+			if (strncasecmp(apcArgv[1], CMD_STAT_RESET_CNT, strlen(CMD_STAT_RESET_CNT)) == 0) {
 				wlanHwAddrToBin(apcArgv[2], &aucMacAddr[0]);
 				fgResetCnt = TRUE;
-			} else if (strnicmp(apcArgv[2], CMD_STAT_RESET_CNT, strlen(CMD_STAT_RESET_CNT)) == 0) {
+			} else if (strncasecmp(apcArgv[2], CMD_STAT_RESET_CNT, strlen(CMD_STAT_RESET_CNT)) == 0) {
 				wlanHwAddrToBin(apcArgv[1], &aucMacAddr[0]);
 				fgResetCnt = TRUE;
 			} else {
@@ -5209,9 +5209,9 @@ static int priv_driver_get_sta_stat(IN struct net_device *prNetDev, IN char *pcC
 		}
 
 		if (i4Argc == 2) {
-			if (strnicmp(apcArgv[1], CMD_STAT_RESET_CNT, strlen(CMD_STAT_RESET_CNT)) == 0)
+			if (strncasecmp(apcArgv[1], CMD_STAT_RESET_CNT, strlen(CMD_STAT_RESET_CNT)) == 0)
 				fgResetCnt = TRUE;
-			else if (strnicmp(apcArgv[1], CMD_STAT_NOISE_SEL, strlen(CMD_STAT_NOISE_SEL)) == 0)
+			else if (strncasecmp(apcArgv[1], CMD_STAT_NOISE_SEL, strlen(CMD_STAT_NOISE_SEL)) == 0)
 				fgRxCCSel = TRUE;
 		}
 	}
@@ -5948,7 +5948,7 @@ static int priv_driver_show_rx_stat(IN struct net_device *prNetDev, IN char *pcC
 	DBGLOG(INIT, ERROR, "MT6632 : priv_driver_show_rx_stat\n");
 
 	if (i4Argc >= 2) {
-		if (strnicmp(apcArgv[1], CMD_STAT_RESET_CNT, strlen(CMD_STAT_RESET_CNT)) == 0)
+		if (strncasecmp(apcArgv[1], CMD_STAT_RESET_CNT, strlen(CMD_STAT_RESET_CNT)) == 0)
 			fgResetCnt = TRUE;
 	}
 
@@ -6750,7 +6750,7 @@ int priv_driver_set_fixed_rate(IN struct net_device *prNetDev, IN char *pcComman
 
 	DBGLOG(REQ, LOUD, "string = %s\n", this_char);
 
-	if (strnicmp(this_char, "auto", strlen("auto")) == 0) {
+	if (strncasecmp(this_char, "auto", strlen("auto")) == 0) {
 		i4Recv = 1;
 	} else {
 		i4Recv = sscanf(this_char, "%d-%d-%d-%d-%d-%d-%d-%d-%d-%d", &(u4WCID),
@@ -9011,7 +9011,7 @@ static int priv_driver_get_mcs_info(IN struct net_device *prNetDev, IN char *pcC
 	}
 
 	if (i4Argc >= 2) {
-		if (strnicmp(apcArgv[1], "START", strlen("START")) == 0) {
+		if (strncasecmp(apcArgv[1], "START", strlen("START")) == 0) {
 			cnmTimerStartTimer(prGlueInfo->prAdapter, &prGlueInfo->prAdapter->rRxMcsInfoTimer, 100);
 			prGlueInfo->prAdapter->fgIsMcsInfoValid = TRUE;
 
@@ -9019,7 +9019,7 @@ static int priv_driver_get_mcs_info(IN struct net_device *prNetDev, IN char *pcC
 					i4TotalLen - i4BytesWritten,
 					"\nStart the MCS Info Function\n");
 			return i4BytesWritten;
-		} else if (strnicmp(apcArgv[1], "STOP", strlen("STOP")) == 0) {
+		} else if (strncasecmp(apcArgv[1], "STOP", strlen("STOP")) == 0) {
 			cnmTimerStopTimer(prGlueInfo->prAdapter, &prGlueInfo->prAdapter->rRxMcsInfoTimer);
 			prGlueInfo->prAdapter->fgIsMcsInfoValid = FALSE;
 
@@ -9577,34 +9577,34 @@ static int priv_driver_get_traffic_report(IN struct net_device *prNetDev, IN cha
 	cmd->u2Len = sizeof(*cmd);
 	cmd->ucBand = ucBand;
 
-	if (strnicmp(apcArgv[1], "ENABLE", strlen("ENABLE")) == 0) {
+	if (strncasecmp(apcArgv[1], "ENABLE", strlen("ENABLE")) == 0) {
 		prGlueInfo->prAdapter->u4IsKeepFullPwrBitmap |= KEEP_FULL_PWR_TRAFFIC_REPORT_BIT;
 		cmd->ucAction = CMD_GET_REPORT_ENABLE;
 		cmd->u2Type |= CMD_ADV_CONTROL_SET;
-	} else if (strnicmp(apcArgv[1], "DISABLE", strlen("DISABLE")) == 0) {
+	} else if (strncasecmp(apcArgv[1], "DISABLE", strlen("DISABLE")) == 0) {
 		prGlueInfo->prAdapter->u4IsKeepFullPwrBitmap &= ~KEEP_FULL_PWR_TRAFFIC_REPORT_BIT;
 		cmd->ucAction = CMD_GET_REPORT_DISABLE;
 		cmd->u2Type |= CMD_ADV_CONTROL_SET;
-	} else if (strnicmp(apcArgv[1], "RESET", strlen("RESET")) == 0) {
+	} else if (strncasecmp(apcArgv[1], "RESET", strlen("RESET")) == 0) {
 		cmd->ucAction = CMD_GET_REPORT_RESET;
 		cmd->u2Type |= CMD_ADV_CONTROL_SET;
-	} else if ((strnicmp(apcArgv[1], "GET", strlen("GET")) == 0) ||
-		(strnicmp(apcArgv[1], "GETDBG", strlen("GETDBG")) == 0)) {
+	} else if ((strncasecmp(apcArgv[1], "GET", strlen("GET")) == 0) ||
+		(strncasecmp(apcArgv[1], "GETDBG", strlen("GETDBG")) == 0)) {
 		cmd->ucAction = CMD_GET_REPORT_GET;
 		fgWaitResp = TRUE;
 		fgRead = TRUE;
-		if ((i4Argc == 4) && (strnicmp(apcArgv[2], "BAND", strlen("BAND")) == 0)) {
+		if ((i4Argc == 4) && (strncasecmp(apcArgv[2], "BAND", strlen("BAND")) == 0)) {
 			u4Ret = kalkStrtou8(apcArgv[3], 0, &ucVal);
 			cmd->ucBand = ucVal;
 		}
-		if (strnicmp(apcArgv[1], "GETDBG", strlen("GETDBG")) == 0)
+		if (strncasecmp(apcArgv[1], "GETDBG", strlen("GETDBG")) == 0)
 			fgGetDbg = TRUE;
-	} else if ((strnicmp(apcArgv[1], "SAMPLEPOINTS", strlen("SAMPLEPOINTS")) == 0) && (i4Argc == 3)) {
+	} else if ((strncasecmp(apcArgv[1], "SAMPLEPOINTS", strlen("SAMPLEPOINTS")) == 0) && (i4Argc == 3)) {
 		u4Ret = kalkStrtou16(apcArgv[2], 0, &u2Val);
 		cmd->u2SamplePoints = u2Val;
 		cmd->u2Type |= CMD_ADV_CONTROL_SET;
 		cmd->ucAction = CMD_SET_REPORT_SAMPLE_POINT;
-	} else if ((strnicmp(apcArgv[1], "TXTHRES", strlen("TXTHRES")) == 0) && (i4Argc == 3)) {
+	} else if ((strncasecmp(apcArgv[1], "TXTHRES", strlen("TXTHRES")) == 0) && (i4Argc == 3)) {
 		u4Ret = kalkStrtou8(apcArgv[2], 0, &ucVal);
 		/* valid val range is from 0 - 100% */
 		if (ucVal > 100)
@@ -9612,7 +9612,7 @@ static int priv_driver_get_traffic_report(IN struct net_device *prNetDev, IN cha
 		cmd->ucTxThres = ucVal;
 		cmd->u2Type |= CMD_ADV_CONTROL_SET;
 		cmd->ucAction = CMD_SET_REPORT_TXTHRES;
-	} else if ((strnicmp(apcArgv[1], "RXTHRES", strlen("RXTHRES")) == 0) && (i4Argc == 3)) {
+	} else if ((strncasecmp(apcArgv[1], "RXTHRES", strlen("RXTHRES")) == 0) && (i4Argc == 3)) {
 		u4Ret = kalkStrtou8(apcArgv[2], 0, &ucVal);
 		/* valid val range is from 0 - 100% */
 		if (ucVal > 100)
@@ -9749,7 +9749,7 @@ static int priv_driver_pta_config(IN struct net_device *prNetDev, IN char *pcCom
 	cmd->u2Type = CMD_PTA_CONFIG_TYPE;
 	cmd->u2Len = sizeof(*cmd);
 	/* set command + parameter must be even number */
-	if ((strnicmp(apcArgv[1], "SET", strlen("SET")) == 0) && (i4Argc >= 4) && !(i4Argc & 1)) {
+	if ((strncasecmp(apcArgv[1], "SET", strlen("SET")) == 0) && (i4Argc >= 4) && !(i4Argc & 1)) {
 		cmd->u2Type |= CMD_ADV_CONTROL_SET;
 		for (i = 2; i < i4Argc; i += 2) {
 			u4Ret = kalkStrtou32(apcArgv[i+1], 0, &u4Val);
@@ -9760,49 +9760,49 @@ static int priv_driver_pta_config(IN struct net_device *prNetDev, IN char *pcCom
 			}
 
 			DBGLOG(REQ, LOUD, "arg[%d] %s %s (0x%x)\n", i, apcArgv[i], apcArgv[i+1], u4Val);
-			if (strnicmp(apcArgv[i], "ENABLE", strlen("ENABLE")) == 0) {
+			if (strncasecmp(apcArgv[i], "ENABLE", strlen("ENABLE")) == 0) {
 				cmd->u4ConfigMask |= CMD_PTA_CONFIG_PTA;
 				if (u4Val)
 					cmd->u4PtaConfig |= CMD_PTA_CONFIG_PTA_EN;
-			} else if (strnicmp(apcArgv[i], "TXDATA", strlen("TXDATA")) == 0) {
+			} else if (strncasecmp(apcArgv[i], "TXDATA", strlen("TXDATA")) == 0) {
 				cmd->u4ConfigMask |= CMD_PTA_CONFIG_TXDATA_TAG;
 				cmd->u4TxDataTag = u4Val;
-			} else if (strnicmp(apcArgv[i], "RXDATAACK", strlen("RXDATAACK")) == 0) {
+			} else if (strncasecmp(apcArgv[i], "RXDATAACK", strlen("RXDATAACK")) == 0) {
 				cmd->u4ConfigMask |= CMD_PTA_CONFIG_RXDATAACK_TAG;
 				cmd->u4RxDataAckTag = u4Val;
-			} else if (strnicmp(apcArgv[i], "RXDATA", strlen("RXDATA")) == 0) {
+			} else if (strncasecmp(apcArgv[i], "RXDATA", strlen("RXDATA")) == 0) {
 				cmd->u4ConfigMask |= CMD_PTA_CONFIG_RX_NSW_TAG;
 				cmd->u4RxNswTag = u4Val;
-			}  else if (strnicmp(apcArgv[i], "TXACK", strlen("TXACK")) == 0) {
+			}  else if (strncasecmp(apcArgv[i], "TXACK", strlen("TXACK")) == 0) {
 				cmd->u4ConfigMask |= CMD_PTA_CONFIG_TXACK_TAG;
 				cmd->u4TxAckTag = u4Val;
-			} else if (strnicmp(apcArgv[i], "PROTTAG", strlen("PROTTAG")) == 0) {
+			} else if (strncasecmp(apcArgv[i], "PROTTAG", strlen("PROTTAG")) == 0) {
 				cmd->u4ConfigMask |= CMD_PTA_CONFIG_TXPROTFRAME_TAG;
 				cmd->u4ConfigMask |= CMD_PTA_CONFIG_RXPROTFRAMEACK_TAG;
 				cmd->u4TxProtFrameTag = u4Val;
 				cmd->u4RxProtFrameAckTag = u4Val;
-			} else if (strnicmp(apcArgv[i], "TXBMC", strlen("TXBMC")) == 0) {
+			} else if (strncasecmp(apcArgv[i], "TXBMC", strlen("TXBMC")) == 0) {
 				cmd->u4ConfigMask |= CMD_PTA_CONFIG_TX_BMC_TAG;
 				cmd->u4TxBMCTag = u4Val;
-			} else if (strnicmp(apcArgv[i], "TXBCN", strlen("TXBCN")) == 0) {
+			} else if (strncasecmp(apcArgv[i], "TXBCN", strlen("TXBCN")) == 0) {
 				cmd->u4ConfigMask |= CMD_PTA_CONFIG_TX_BCN_TAG;
 				cmd->u4TxBCNTag = u4Val;
-			} else if (strnicmp(apcArgv[i], "RXBCN", strlen("RXBCN")) == 0) {
+			} else if (strncasecmp(apcArgv[i], "RXBCN", strlen("RXBCN")) == 0) {
 				cmd->u4ConfigMask |= CMD_PTA_CONFIG_RX_SP_TAG;
 				cmd->u4RxSPTag = u4Val;
-			} else if (strnicmp(apcArgv[i], "TXMGMT", strlen("TXMGMT")) == 0) {
+			} else if (strncasecmp(apcArgv[i], "TXMGMT", strlen("TXMGMT")) == 0) {
 				cmd->u4ConfigMask |= CMD_PTA_CONFIG_TX_MGMT_TAG;
 				cmd->u4TxMgmtTag = u4Val;
-			} else if (strnicmp(apcArgv[i], "RXMGMTACK", strlen("RXMGMTACK")) == 0) {
+			} else if (strncasecmp(apcArgv[i], "RXMGMTACK", strlen("RXMGMTACK")) == 0) {
 				cmd->u4ConfigMask |= CMD_PTA_CONFIG_RXMGMTACK_TAG;
 				cmd->u4RxMgmtAckTag = u4Val;
-			} else if (strnicmp(apcArgv[i], "STATENABLE", strlen("STATENABLE")) == 0) {
+			} else if (strncasecmp(apcArgv[i], "STATENABLE", strlen("STATENABLE")) == 0) {
 				cmd->u4ConfigMask |= CMD_PTA_CONFIG_PTA_STAT;
 				if (!u4Val)
 					cmd->u4PtaConfig &= ~CMD_PTA_CONFIG_PTA_STAT_EN;
 				else
 					cmd->u4PtaConfig |= CMD_PTA_CONFIG_PTA_STAT_EN;
-			} else if (strnicmp(apcArgv[i], "STATRESET", strlen("STATRESET")) == 0)
+			} else if (strncasecmp(apcArgv[i], "STATRESET", strlen("STATRESET")) == 0)
 				cmd->u4ConfigMask |= CMD_PTA_CONFIG_PTA_STAT_RESET;
 			else {
 				i4BytesWritten += snprintf(pcCommand + i4BytesWritten, i4TotalLen - i4BytesWritten,
@@ -9817,7 +9817,7 @@ static int priv_driver_pta_config(IN struct net_device *prNetDev, IN char *pcCom
 			FALSE,
 			FALSE,
 			NULL, NULL, sizeof(*cmd), (PUINT_8) cmd, NULL, 0);
-	} else if (strnicmp(apcArgv[1], "GET", strlen("GET")) == 0) {
+	} else if (strncasecmp(apcArgv[1], "GET", strlen("GET")) == 0) {
 		rStatus = kalIoctl(prGlueInfo, wlanoidAdvCtrl, cmd, sizeof(*cmd), TRUE, TRUE, TRUE, &u4BufLen);
 	} else
 		goto set_pta_invalid;
@@ -10405,18 +10405,18 @@ static int priv_driver_noise_histogram(IN struct net_device *prNetDev, IN char *
 	cmd->u2Type = CMD_NOISE_HISTOGRAM_TYPE;
 	cmd->u2Len = sizeof(*cmd);
 
-	if (strnicmp(apcArgv[1], "ENABLE", strlen("ENABLE")) == 0) {
+	if (strncasecmp(apcArgv[1], "ENABLE", strlen("ENABLE")) == 0) {
 		prGlueInfo->prAdapter->u4IsKeepFullPwrBitmap |= KEEP_FULL_PWR_NOISE_HISTOGRAM_BIT;
 		cmd->ucAction = CMD_NOISE_HISTOGRAM_ENABLE;
 		cmd->u2Type |= CMD_ADV_CONTROL_SET;
-	} else if (strnicmp(apcArgv[1], "DISABLE", strlen("DISABLE")) == 0) {
+	} else if (strncasecmp(apcArgv[1], "DISABLE", strlen("DISABLE")) == 0) {
 		prGlueInfo->prAdapter->u4IsKeepFullPwrBitmap &= ~KEEP_FULL_PWR_NOISE_HISTOGRAM_BIT;
 		cmd->ucAction = CMD_NOISE_HISTOGRAM_DISABLE;
 		cmd->u2Type |= CMD_ADV_CONTROL_SET;
-	} else if (strnicmp(apcArgv[1], "RESET", strlen("RESET")) == 0) {
+	} else if (strncasecmp(apcArgv[1], "RESET", strlen("RESET")) == 0) {
 		cmd->ucAction = CMD_NOISE_HISTOGRAM_RESET;
 		cmd->u2Type |= CMD_ADV_CONTROL_SET;
-	} else if (strnicmp(apcArgv[1], "GET", strlen("GET")) == 0) {
+	} else if (strncasecmp(apcArgv[1], "GET", strlen("GET")) == 0) {
 		cmd->ucAction = CMD_NOISE_HISTOGRAM_GET;
 	} else
 		goto noise_histogram_invalid;
@@ -10852,184 +10852,184 @@ INT_32 priv_driver_cmds(IN struct net_device *prNetDev, IN PCHAR pcCommand, IN I
 		return -1;
 	prGlueInfo = *((P_GLUE_INFO_T *) netdev_priv(prNetDev));
 
-		if (strnicmp(pcCommand, CMD_RSSI, strlen(CMD_RSSI)) == 0) {
+		if (strncasecmp(pcCommand, CMD_RSSI, strlen(CMD_RSSI)) == 0) {
 			/* i4BytesWritten =
 			 *  wl_android_get_rssi(net, command, i4TotalLen);
 			 */
-		} else if (strnicmp(pcCommand, CMD_AP_START, strlen(CMD_AP_START)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_AP_START, strlen(CMD_AP_START)) == 0) {
 			i4BytesWritten = priv_driver_set_ap_start(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_LINKSPEED, strlen(CMD_LINKSPEED)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_LINKSPEED, strlen(CMD_LINKSPEED)) == 0) {
 			i4BytesWritten = priv_driver_get_linkspeed(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_PNOSSIDCLR_SET, strlen(CMD_PNOSSIDCLR_SET)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_PNOSSIDCLR_SET, strlen(CMD_PNOSSIDCLR_SET)) == 0) {
 			/* ToDo:: Nothing */
-		} else if (strnicmp(pcCommand, CMD_PNOSETUP_SET, strlen(CMD_PNOSETUP_SET)) == 0) {
-		} else if (strnicmp(pcCommand, CMD_RXFILTER_START, strlen(CMD_RXFILTER_START)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_PNOSETUP_SET, strlen(CMD_PNOSETUP_SET)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_RXFILTER_START, strlen(CMD_RXFILTER_START)) == 0) {
 			/* ToDo:: Nothing */
-		} else if (strnicmp(pcCommand, CMD_RXFILTER_STOP, strlen(CMD_RXFILTER_STOP)) == 0) {
-		} else if (strnicmp(pcCommand, CMD_SET_AP_WPS_P2P_IE, strlen(CMD_SET_AP_WPS_P2P_IE)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_RXFILTER_STOP, strlen(CMD_RXFILTER_STOP)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_SET_AP_WPS_P2P_IE, strlen(CMD_SET_AP_WPS_P2P_IE)) == 0) {
                         /* ToDo:: Nothing */
-		} else if (strnicmp(pcCommand, CMD_RXFILTER_ADD, strlen(CMD_RXFILTER_ADD)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_RXFILTER_ADD, strlen(CMD_RXFILTER_ADD)) == 0) {
                         /* ToDo:: Nothing */
-		} else if (strnicmp(pcCommand, CMD_PNOENABLE_SET, strlen(CMD_PNOENABLE_SET)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_PNOENABLE_SET, strlen(CMD_PNOENABLE_SET)) == 0) {
 
-		} else if (strnicmp(pcCommand, CMD_BTCOEXSCAN_STOP, strlen(CMD_BTCOEXSCAN_STOP)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_BTCOEXSCAN_STOP, strlen(CMD_BTCOEXSCAN_STOP)) == 0) {
 			/* ToDo:: Nothing */
-		} else if (strnicmp(pcCommand, CMD_SETSUSPENDOPT, strlen(CMD_SETSUSPENDOPT)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_SETSUSPENDOPT, strlen(CMD_SETSUSPENDOPT)) == 0) {
 			/* i4BytesWritten = wl_android_set_suspendopt(net, pcCommand, i4TotalLen); */
-		} else if (strnicmp(pcCommand, CMD_SETSUSPENDMODE, strlen(CMD_SETSUSPENDMODE)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_SETSUSPENDMODE, strlen(CMD_SETSUSPENDMODE)) == 0) {
 			i4BytesWritten = priv_driver_set_suspend_mode(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_SETBAND, strlen(CMD_SETBAND)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_SETBAND, strlen(CMD_SETBAND)) == 0) {
 			i4BytesWritten = priv_driver_set_band(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_GETBAND, strlen(CMD_GETBAND)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_GETBAND, strlen(CMD_GETBAND)) == 0) {
 			/* i4BytesWritten = wl_android_get_band(net, pcCommand, i4TotalLen); */
-		} else if (strnicmp(pcCommand, CMD_SET_TXPOWER, strlen(CMD_SET_TXPOWER)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_SET_TXPOWER, strlen(CMD_SET_TXPOWER)) == 0) {
 			i4BytesWritten = priv_driver_set_txpower(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_COUNTRY, strlen(CMD_COUNTRY)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_COUNTRY, strlen(CMD_COUNTRY)) == 0) {
 			i4BytesWritten = priv_driver_set_country(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_GET_COUNTRY, strlen(CMD_GET_COUNTRY)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_GET_COUNTRY, strlen(CMD_GET_COUNTRY)) == 0) {
 			i4BytesWritten = priv_driver_get_country(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_GET_CHANNELS, strlen(CMD_GET_CHANNELS)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_GET_CHANNELS, strlen(CMD_GET_CHANNELS)) == 0) {
 			i4BytesWritten = priv_driver_get_channels(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_MIRACAST, strlen(CMD_MIRACAST)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_MIRACAST, strlen(CMD_MIRACAST)) == 0) {
 			i4BytesWritten = priv_driver_set_miracast(prNetDev, pcCommand, i4TotalLen);
 		}
 		/* Mediatek private command  */
-		else if (strnicmp(pcCommand, CMD_SET_SW_CTRL, strlen(CMD_SET_SW_CTRL)) == 0) {
+		else if (strncasecmp(pcCommand, CMD_SET_SW_CTRL, strlen(CMD_SET_SW_CTRL)) == 0) {
 			i4BytesWritten = priv_driver_set_sw_ctrl(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_SET_FIXED_RATE, strlen(CMD_SET_FIXED_RATE)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_SET_FIXED_RATE, strlen(CMD_SET_FIXED_RATE)) == 0) {
 			i4BytesWritten = priv_driver_set_fixed_rate(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_GET_SW_CTRL, strlen(CMD_GET_SW_CTRL)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_GET_SW_CTRL, strlen(CMD_GET_SW_CTRL)) == 0) {
 			i4BytesWritten = priv_driver_get_sw_ctrl(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_SET_MCR, strlen(CMD_SET_MCR)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_SET_MCR, strlen(CMD_SET_MCR)) == 0) {
 			i4BytesWritten = priv_driver_set_mcr(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_GET_MCR, strlen(CMD_GET_MCR)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_GET_MCR, strlen(CMD_GET_MCR)) == 0) {
 			i4BytesWritten = priv_driver_get_mcr(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_SET_DRV_MCR, strlen(CMD_SET_DRV_MCR)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_SET_DRV_MCR, strlen(CMD_SET_DRV_MCR)) == 0) {
 			i4BytesWritten = priv_driver_set_drv_mcr(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_GET_DRV_MCR, strlen(CMD_GET_DRV_MCR)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_GET_DRV_MCR, strlen(CMD_GET_DRV_MCR)) == 0) {
 			i4BytesWritten = priv_driver_get_drv_mcr(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_SET_TEST_MODE, strlen(CMD_SET_TEST_MODE)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_SET_TEST_MODE, strlen(CMD_SET_TEST_MODE)) == 0) {
 			i4BytesWritten = priv_driver_set_test_mode(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_SET_TEST_CMD, strlen(CMD_SET_TEST_CMD)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_SET_TEST_CMD, strlen(CMD_SET_TEST_CMD)) == 0) {
 			i4BytesWritten = priv_driver_set_test_cmd(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_GET_TEST_RESULT, strlen(CMD_GET_TEST_RESULT)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_GET_TEST_RESULT, strlen(CMD_GET_TEST_RESULT)) == 0) {
 			i4BytesWritten = priv_driver_get_test_result(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_GET_STA_STAT2, strlen(CMD_GET_STA_STAT2)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_GET_STA_STAT2, strlen(CMD_GET_STA_STAT2)) == 0) {
 			i4BytesWritten = priv_driver_get_sta_stat2(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_GET_STA_STAT, strlen(CMD_GET_STA_STAT)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_GET_STA_STAT, strlen(CMD_GET_STA_STAT)) == 0) {
 			i4BytesWritten = priv_driver_get_sta_stat(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_GET_CURR_AR_RATE, strlen(CMD_GET_CURR_AR_RATE)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_GET_CURR_AR_RATE, strlen(CMD_GET_CURR_AR_RATE)) == 0) {
 			i4BytesWritten = priv_driver_get_sta_curr_ar_rate(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_GET_STA_RX_STAT, strlen(CMD_GET_STA_RX_STAT)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_GET_STA_RX_STAT, strlen(CMD_GET_STA_RX_STAT)) == 0) {
 			i4BytesWritten = priv_driver_show_rx_stat(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_SET_ACL_POLICY, strlen(CMD_SET_ACL_POLICY)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_SET_ACL_POLICY, strlen(CMD_SET_ACL_POLICY)) == 0) {
 			i4BytesWritten = priv_driver_set_acl_policy(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_ADD_ACL_ENTRY, strlen(CMD_ADD_ACL_ENTRY)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_ADD_ACL_ENTRY, strlen(CMD_ADD_ACL_ENTRY)) == 0) {
 			i4BytesWritten = priv_driver_add_acl_entry(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_DEL_ACL_ENTRY, strlen(CMD_DEL_ACL_ENTRY)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_DEL_ACL_ENTRY, strlen(CMD_DEL_ACL_ENTRY)) == 0) {
 			i4BytesWritten = priv_driver_del_acl_entry(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_SHOW_ACL_ENTRY, strlen(CMD_SHOW_ACL_ENTRY)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_SHOW_ACL_ENTRY, strlen(CMD_SHOW_ACL_ENTRY)) == 0) {
 			i4BytesWritten = priv_driver_show_acl_entry(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_CLEAR_ACL_ENTRY, strlen(CMD_CLEAR_ACL_ENTRY)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_CLEAR_ACL_ENTRY, strlen(CMD_CLEAR_ACL_ENTRY)) == 0) {
 			i4BytesWritten = priv_driver_clear_acl_entry(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_COEX_CONTROL, strlen(CMD_COEX_CONTROL)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_COEX_CONTROL, strlen(CMD_COEX_CONTROL)) == 0) {
 			i4BytesWritten = priv_driver_coex_ctrl(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_SET_CSI, strlen(CMD_SET_CSI)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_SET_CSI, strlen(CMD_SET_CSI)) == 0) {
 			i4BytesWritten = priv_driver_set_csi(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_GET_CSI, strlen(CMD_GET_CSI)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_GET_CSI, strlen(CMD_GET_CSI)) == 0) {
 			i4BytesWritten = priv_driver_get_csi(prNetDev, pcCommand, i4TotalLen);
 		}
 #if (CFG_SUPPORT_DFS_MASTER == 1)
-		else if (strnicmp(pcCommand, CMD_SHOW_DFS_STATE, strlen(CMD_SHOW_DFS_STATE)) == 0) {
+		else if (strncasecmp(pcCommand, CMD_SHOW_DFS_STATE, strlen(CMD_SHOW_DFS_STATE)) == 0) {
 			i4BytesWritten = priv_driver_show_dfs_state(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_SHOW_DFS_RADAR_PARAM, strlen(CMD_SHOW_DFS_RADAR_PARAM)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_SHOW_DFS_RADAR_PARAM, strlen(CMD_SHOW_DFS_RADAR_PARAM)) == 0) {
 			i4BytesWritten = priv_driver_show_dfs_radar_param(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_SHOW_DFS_HELP, strlen(CMD_SHOW_DFS_HELP)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_SHOW_DFS_HELP, strlen(CMD_SHOW_DFS_HELP)) == 0) {
 			i4BytesWritten = priv_driver_show_dfs_help(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_SHOW_DFS_CAC_TIME, strlen(CMD_SHOW_DFS_CAC_TIME)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_SHOW_DFS_CAC_TIME, strlen(CMD_SHOW_DFS_CAC_TIME)) == 0) {
 			i4BytesWritten = priv_driver_show_dfs_cac_time(prNetDev, pcCommand, i4TotalLen);
 		}
 #endif
 #if CFG_SUPPORT_CAL_RESULT_BACKUP_TO_HOST
-		else if (strnicmp(pcCommand,
+		else if (strncasecmp(pcCommand,
 			CMD_SET_CALBACKUP_TEST_DRV_FW, strlen(CMD_SET_CALBACKUP_TEST_DRV_FW)) == 0)
 			i4BytesWritten = priv_driver_set_calbackup_test_drv_fw(prNetDev, pcCommand, i4TotalLen);
 #endif
 #if CFG_WOW_SUPPORT
-		else if (strnicmp(pcCommand, CMD_WOW_START, strlen(CMD_WOW_START)) == 0)
+		else if (strncasecmp(pcCommand, CMD_WOW_START, strlen(CMD_WOW_START)) == 0)
 			i4BytesWritten = priv_driver_set_wow(prNetDev, pcCommand, i4TotalLen);
-		else if (strnicmp(pcCommand, CMD_SET_WOW_ENABLE, strlen(CMD_SET_WOW_ENABLE)) == 0)
+		else if (strncasecmp(pcCommand, CMD_SET_WOW_ENABLE, strlen(CMD_SET_WOW_ENABLE)) == 0)
 			i4BytesWritten = priv_driver_set_wow_enable(prNetDev, pcCommand, i4TotalLen);
-		else if (strnicmp(pcCommand, CMD_SET_WOW_PAR, strlen(CMD_SET_WOW_PAR)) == 0)
+		else if (strncasecmp(pcCommand, CMD_SET_WOW_PAR, strlen(CMD_SET_WOW_PAR)) == 0)
 			i4BytesWritten = priv_driver_set_wow_par(prNetDev, pcCommand, i4TotalLen);
-		else if (strnicmp(pcCommand, CMD_SET_WOW_UDP, strlen(CMD_SET_WOW_UDP)) == 0)
+		else if (strncasecmp(pcCommand, CMD_SET_WOW_UDP, strlen(CMD_SET_WOW_UDP)) == 0)
 			i4BytesWritten = priv_driver_set_wow_udpport(prNetDev, pcCommand, i4TotalLen);
-		else if (strnicmp(pcCommand, CMD_SET_WOW_TCP, strlen(CMD_SET_WOW_TCP)) == 0)
+		else if (strncasecmp(pcCommand, CMD_SET_WOW_TCP, strlen(CMD_SET_WOW_TCP)) == 0)
 			i4BytesWritten = priv_driver_set_wow_tcpport(prNetDev, pcCommand, i4TotalLen);
-		else if (strnicmp(pcCommand, CMD_GET_WOW_PORT, strlen(CMD_GET_WOW_PORT)) == 0)
+		else if (strncasecmp(pcCommand, CMD_GET_WOW_PORT, strlen(CMD_GET_WOW_PORT)) == 0)
 			i4BytesWritten = priv_driver_get_wow_port(prNetDev, pcCommand, i4TotalLen);
-		else if (strnicmp(pcCommand, CMD_GET_WOW_REASON, strlen(CMD_GET_WOW_REASON)) == 0)
+		else if (strncasecmp(pcCommand, CMD_GET_WOW_REASON, strlen(CMD_GET_WOW_REASON)) == 0)
 			i4BytesWritten = priv_driver_get_wow_reason(prNetDev, pcCommand, i4TotalLen);
 #endif
-		else if (strnicmp(pcCommand, CMD_SET_ADV_PWS, strlen(CMD_SET_ADV_PWS)) == 0)
+		else if (strncasecmp(pcCommand, CMD_SET_ADV_PWS, strlen(CMD_SET_ADV_PWS)) == 0)
 			i4BytesWritten = priv_driver_set_adv_pws(prNetDev, pcCommand, i4TotalLen);
-		else if (strnicmp(pcCommand, CMD_SET_MDTIM, strlen(CMD_SET_MDTIM)) == 0)
+		else if (strncasecmp(pcCommand, CMD_SET_MDTIM, strlen(CMD_SET_MDTIM)) == 0)
 			i4BytesWritten = priv_driver_set_mdtim(prNetDev, pcCommand, i4TotalLen);
-		else if (strnicmp(pcCommand, CMD_SET_LISTEN_DTIM_INTERVAL, strlen(CMD_SET_LISTEN_DTIM_INTERVAL)) == 0)
+		else if (strncasecmp(pcCommand, CMD_SET_LISTEN_DTIM_INTERVAL, strlen(CMD_SET_LISTEN_DTIM_INTERVAL)) == 0)
 			i4BytesWritten = priv_driver_set_listen_dtim_interval(prNetDev, pcCommand, i4TotalLen);
 #if CFG_SUPPORT_QA_TOOL
-		else if (strnicmp(pcCommand, CMD_GET_RX_STATISTICS, strlen(CMD_GET_RX_STATISTICS)) == 0)
+		else if (strncasecmp(pcCommand, CMD_GET_RX_STATISTICS, strlen(CMD_GET_RX_STATISTICS)) == 0)
 			i4BytesWritten = priv_driver_get_rx_statistics(prNetDev, pcCommand, i4TotalLen);
 #if CFG_SUPPORT_BUFFER_MODE
-		else if (strnicmp(pcCommand, CMD_SETBUFMODE, strlen(CMD_SETBUFMODE)) == 0)
+		else if (strncasecmp(pcCommand, CMD_SETBUFMODE, strlen(CMD_SETBUFMODE)) == 0)
 			i4BytesWritten = priv_driver_set_efuse_buffer_mode(prNetDev, pcCommand, i4TotalLen);
-		else if (strnicmp(pcCommand, CMD_SETEEPROM_MODE, strlen(CMD_SETEEPROM_MODE)) == 0)
+		else if (strncasecmp(pcCommand, CMD_SETEEPROM_MODE, strlen(CMD_SETEEPROM_MODE)) == 0)
 			i4BytesWritten = priv_driver_set_eeprom_mode(prNetDev, pcCommand, i4TotalLen);
 #endif
 #endif
 #if CFG_SUPPORT_MSP
 #if 0
-		else if (strnicmp(pcCommand, CMD_GET_STAT, strlen(CMD_GET_STAT)) == 0)
+		else if (strncasecmp(pcCommand, CMD_GET_STAT, strlen(CMD_GET_STAT)) == 0)
 			i4BytesWritten = priv_driver_get_stat(prNetDev, pcCommand, i4TotalLen);
 #endif
-		else if (strnicmp(pcCommand, CMD_GET_STA_STATISTICS, strlen(CMD_GET_STA_STATISTICS)) == 0)
+		else if (strncasecmp(pcCommand, CMD_GET_STA_STATISTICS, strlen(CMD_GET_STA_STATISTICS)) == 0)
 			i4BytesWritten = priv_driver_get_sta_statistics(prNetDev, pcCommand, i4TotalLen);
-		else if (strnicmp(pcCommand, CMD_GET_BSS_STATISTICS, strlen(CMD_GET_BSS_STATISTICS)) == 0)
+		else if (strncasecmp(pcCommand, CMD_GET_BSS_STATISTICS, strlen(CMD_GET_BSS_STATISTICS)) == 0)
 			i4BytesWritten = priv_driver_get_bss_statistics(prNetDev, pcCommand, i4TotalLen);
-		else if (strnicmp(pcCommand, CMD_GET_STA_INFO, strlen(CMD_GET_STA_INFO)) == 0)
+		else if (strncasecmp(pcCommand, CMD_GET_STA_INFO, strlen(CMD_GET_STA_INFO)) == 0)
 			i4BytesWritten = priv_driver_get_sta_info(prNetDev, pcCommand, i4TotalLen);
-		else if (strnicmp(pcCommand, CMD_GET_WTBL_INFO, strlen(CMD_GET_WTBL_INFO)) == 0)
+		else if (strncasecmp(pcCommand, CMD_GET_WTBL_INFO, strlen(CMD_GET_WTBL_INFO)) == 0)
 			i4BytesWritten = priv_driver_get_wtbl_info(prNetDev, pcCommand, i4TotalLen);
-		else if (strnicmp(pcCommand, CMD_GET_MIB_INFO, strlen(CMD_GET_MIB_INFO)) == 0)
+		else if (strncasecmp(pcCommand, CMD_GET_MIB_INFO, strlen(CMD_GET_MIB_INFO)) == 0)
 			i4BytesWritten = priv_driver_get_mib_info(prNetDev, pcCommand, i4TotalLen);
 #if CFG_SUPPORT_LAST_SEC_MCS_INFO
-		else if (strnicmp(pcCommand, CMD_GET_MCS_INFO, strlen(CMD_GET_MCS_INFO)) == 0)
+		else if (strncasecmp(pcCommand, CMD_GET_MCS_INFO, strlen(CMD_GET_MCS_INFO)) == 0)
 			i4BytesWritten = priv_driver_get_mcs_info(prNetDev, pcCommand, i4TotalLen);
 #endif
-		else if (strnicmp(pcCommand, CMD_SET_FW_LOG, strlen(CMD_SET_FW_LOG)) == 0)
+		else if (strncasecmp(pcCommand, CMD_SET_FW_LOG, strlen(CMD_SET_FW_LOG)) == 0)
 			i4BytesWritten = priv_driver_set_fw_log(prNetDev, pcCommand, i4TotalLen);
 #endif
-		else if (strnicmp(pcCommand, CMD_SET_CFG, strlen(CMD_SET_CFG)) == 0) {
+		else if (strncasecmp(pcCommand, CMD_SET_CFG, strlen(CMD_SET_CFG)) == 0) {
 			i4BytesWritten = priv_driver_set_cfg(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_GET_CFG, strlen(CMD_GET_CFG)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_GET_CFG, strlen(CMD_GET_CFG)) == 0) {
 			i4BytesWritten = priv_driver_get_cfg(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_SET_CHIP, strlen(CMD_SET_CHIP)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_SET_CHIP, strlen(CMD_SET_CHIP)) == 0) {
 			i4BytesWritten = priv_driver_set_chip_config(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_GET_CHIP, strlen(CMD_GET_CHIP)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_GET_CHIP, strlen(CMD_GET_CHIP)) == 0) {
 			i4BytesWritten = priv_driver_get_chip_config(prNetDev, pcCommand, i4TotalLen);
-		} else if (strnicmp(pcCommand, CMD_GET_VERSION, strlen(CMD_GET_VERSION)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_GET_VERSION, strlen(CMD_GET_VERSION)) == 0) {
 			i4BytesWritten = priv_driver_get_version(prNetDev, pcCommand, i4TotalLen);
 #if CFG_SUPPORT_DBDC
 
-		} else if (strnicmp(pcCommand, CMD_SET_DBDC, strlen(CMD_SET_DBDC)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_SET_DBDC, strlen(CMD_SET_DBDC)) == 0) {
 			i4BytesWritten = priv_driver_set_dbdc(prNetDev, pcCommand, i4TotalLen);
 #endif /*CFG_SUPPORT_DBDC*/
 #if CFG_SUPPORT_BATCH_SCAN
-		} else if (strnicmp(pcCommand, CMD_BATCH_SET, strlen(CMD_BATCH_SET)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_BATCH_SET, strlen(CMD_BATCH_SET)) == 0) {
 			kalIoctl(prGlueInfo,
 				 wlanoidSetBatchScanReq,
 				 (PVOID) pcCommand, i4TotalLen, FALSE, FALSE, TRUE, &i4BytesWritten);
-		} else if ( strnicmp(pcCommand, CMD_BATCH_GET, strlen(CMD_BATCH_GET)) == 0) {
+		} else if ( strncasecmp(pcCommand, CMD_BATCH_GET, strlen(CMD_BATCH_GET)) == 0) {
 			/* strcpy(pcCommand, "BATCH SCAN DATA FROM FIRMWARE"); */
 			/* i4BytesWritten = strlen("BATCH SCAN DATA FROM FIRMWARE") + 1; */
 			/* i4BytesWritten = priv_driver_get_linkspeed (prNetDev, pcCommand, i4TotalLen); */
@@ -11066,68 +11066,68 @@ INT_32 priv_driver_cmds(IN struct net_device *prNetDev, IN PCHAR pcCommand, IN I
 			 *  "BATCH", DUMP_PREFIX_ADDRESS, 16, 1, pcCommand, i4BytesWritten, TRUE);
 			 */
 
-		} else if (strnicmp(pcCommand, CMD_BATCH_STOP, strlen(CMD_BATCH_STOP)) == 0) {
+		} else if (strncasecmp(pcCommand, CMD_BATCH_STOP, strlen(CMD_BATCH_STOP)) == 0) {
 			kalIoctl(prGlueInfo,
 				 wlanoidSetBatchScanReq,
 				 (PVOID) pcCommand, i4TotalLen, FALSE, FALSE, TRUE, &i4BytesWritten);
 #endif
 		}
 #if CFG_SUPPORT_SNIFFER
-		else if (strnicmp(pcCommand, CMD_SETMONITOR, strlen(CMD_SETMONITOR)) == 0)
+		else if (strncasecmp(pcCommand, CMD_SETMONITOR, strlen(CMD_SETMONITOR)) == 0)
 			i4BytesWritten = priv_driver_set_monitor(prNetDev, pcCommand, i4TotalLen);
 #endif
-		else if (strnicmp(pcCommand, CMD_GET_QUE_INFO, strlen(CMD_GET_QUE_INFO)) == 0)
+		else if (strncasecmp(pcCommand, CMD_GET_QUE_INFO, strlen(CMD_GET_QUE_INFO)) == 0)
 			i4BytesWritten = priv_driver_get_que_info(prNetDev, pcCommand, i4TotalLen);
-		else if (strnicmp(pcCommand, CMD_GET_MEM_INFO, strlen(CMD_GET_MEM_INFO)) == 0)
+		else if (strncasecmp(pcCommand, CMD_GET_MEM_INFO, strlen(CMD_GET_MEM_INFO)) == 0)
 			i4BytesWritten = priv_driver_get_mem_info(prNetDev, pcCommand, i4TotalLen);
-		else if (strnicmp(pcCommand, CMD_GET_HIF_INFO, strlen(CMD_GET_HIF_INFO)) == 0)
+		else if (strncasecmp(pcCommand, CMD_GET_HIF_INFO, strlen(CMD_GET_HIF_INFO)) == 0)
 			i4BytesWritten = priv_driver_get_hif_info(prNetDev, pcCommand, i4TotalLen);
-		else if (strnicmp(pcCommand, CMD_SET_P2P_PS, strlen(CMD_SET_P2P_PS)) == 0)
+		else if (strncasecmp(pcCommand, CMD_SET_P2P_PS, strlen(CMD_SET_P2P_PS)) == 0)
 			i4BytesWritten = priv_driver_set_p2p_ps(prNetDev, pcCommand, i4TotalLen);
-		else if (strnicmp(pcCommand, CMD_GET_CNM_INFO, strlen(CMD_GET_CNM_INFO)) == 0)
+		else if (strncasecmp(pcCommand, CMD_GET_CNM_INFO, strlen(CMD_GET_CNM_INFO)) == 0)
 			i4BytesWritten = priv_driver_get_cnm_info(prNetDev, pcCommand, i4TotalLen);
-		else if (strnicmp(pcCommand, CMD_GET_DSLP_CNT, strlen(CMD_GET_DSLP_CNT)) == 0)
+		else if (strncasecmp(pcCommand, CMD_GET_DSLP_CNT, strlen(CMD_GET_DSLP_CNT)) == 0)
 			i4BytesWritten = priv_driver_get_deep_sleep_cnt(prNetDev, pcCommand, i4TotalLen);
 #if CFG_AUTO_CHANNEL_SEL_SUPPORT
-		else if (strnicmp(pcCommand, CMD_GET_CH_RANK_LIST, strlen(CMD_GET_CH_RANK_LIST)) == 0)
+		else if (strncasecmp(pcCommand, CMD_GET_CH_RANK_LIST, strlen(CMD_GET_CH_RANK_LIST)) == 0)
 			i4BytesWritten = priv_driver_get_ch_rank_list(prNetDev, pcCommand, i4TotalLen);
-		else if (strnicmp(pcCommand, CMD_GET_CH_DIRTINESS, strlen(CMD_GET_CH_DIRTINESS)) == 0)
+		else if (strncasecmp(pcCommand, CMD_GET_CH_DIRTINESS, strlen(CMD_GET_CH_DIRTINESS)) == 0)
 			i4BytesWritten = priv_driver_get_ch_dirtiness(prNetDev, pcCommand, i4TotalLen);
 #endif
-		else if (strnicmp(pcCommand, CMD_EFUSE, sizeof(CMD_EFUSE)-1) == 0)
+		else if (strncasecmp(pcCommand, CMD_EFUSE, sizeof(CMD_EFUSE)-1) == 0)
 			i4BytesWritten = priv_driver_efuse_ops(prNetDev, pcCommand, i4TotalLen);
 #if CFG_SUPPORT_ADVANCE_CONTROL
-		else if (strnicmp(pcCommand, CMD_SET_NOISE, strlen(CMD_SET_NOISE)) == 0)
+		else if (strncasecmp(pcCommand, CMD_SET_NOISE, strlen(CMD_SET_NOISE)) == 0)
 			i4BytesWritten = priv_driver_set_noise(prNetDev, pcCommand, i4TotalLen);
-		else if (strnicmp(pcCommand, CMD_GET_NOISE, strlen(CMD_GET_NOISE)) == 0)
+		else if (strncasecmp(pcCommand, CMD_GET_NOISE, strlen(CMD_GET_NOISE)) == 0)
 			i4BytesWritten = priv_driver_get_noise(prNetDev, pcCommand, i4TotalLen);
-		else if (strnicmp(pcCommand, CMD_PTA_CONFIG, strlen(CMD_PTA_CONFIG)) == 0)
+		else if (strncasecmp(pcCommand, CMD_PTA_CONFIG, strlen(CMD_PTA_CONFIG)) == 0)
 			i4BytesWritten = priv_driver_pta_config(prNetDev, pcCommand, i4TotalLen);
-		else if (strnicmp(pcCommand, CMD_TRAFFIC_REPORT, strlen(CMD_TRAFFIC_REPORT)) == 0)
+		else if (strncasecmp(pcCommand, CMD_TRAFFIC_REPORT, strlen(CMD_TRAFFIC_REPORT)) == 0)
 			i4BytesWritten = priv_driver_get_traffic_report(prNetDev, pcCommand, i4TotalLen);
-		else if (strnicmp(pcCommand, CMD_SET_POP, strlen(CMD_SET_POP)) == 0)
+		else if (strncasecmp(pcCommand, CMD_SET_POP, strlen(CMD_SET_POP)) == 0)
 			i4BytesWritten = priv_driver_set_pop(prNetDev, pcCommand, i4TotalLen);
-		else if (strnicmp(pcCommand, CMD_GET_POP, strlen(CMD_GET_POP)) == 0)
+		else if (strncasecmp(pcCommand, CMD_GET_POP, strlen(CMD_GET_POP)) == 0)
 			i4BytesWritten = priv_driver_get_pop(prNetDev, pcCommand, i4TotalLen);
-		else if (strnicmp(pcCommand, CMD_SET_ED, strlen(CMD_SET_ED)) == 0)
+		else if (strncasecmp(pcCommand, CMD_SET_ED, strlen(CMD_SET_ED)) == 0)
 			i4BytesWritten = priv_driver_set_ed(prNetDev, pcCommand, i4TotalLen);
-		else if (strnicmp(pcCommand, CMD_GET_ED, strlen(CMD_GET_ED)) == 0)
+		else if (strncasecmp(pcCommand, CMD_GET_ED, strlen(CMD_GET_ED)) == 0)
 			i4BytesWritten = priv_driver_get_ed(prNetDev, pcCommand, i4TotalLen);
-		else if (strnicmp(pcCommand, CMD_SET_PD, strlen(CMD_SET_PD)) == 0)
+		else if (strncasecmp(pcCommand, CMD_SET_PD, strlen(CMD_SET_PD)) == 0)
 			i4BytesWritten = priv_driver_set_pd(prNetDev, pcCommand, i4TotalLen);
-		else if (strnicmp(pcCommand, CMD_GET_PD, strlen(CMD_GET_PD)) == 0)
+		else if (strncasecmp(pcCommand, CMD_GET_PD, strlen(CMD_GET_PD)) == 0)
 			i4BytesWritten = priv_driver_get_pd(prNetDev, pcCommand, i4TotalLen);
-		else if (strnicmp(pcCommand, CMD_SET_MAX_RFGAIN, strlen(CMD_SET_MAX_RFGAIN)) == 0)
+		else if (strncasecmp(pcCommand, CMD_SET_MAX_RFGAIN, strlen(CMD_SET_MAX_RFGAIN)) == 0)
 			i4BytesWritten = priv_driver_set_maxrfgain(prNetDev, pcCommand, i4TotalLen);
-		else if (strnicmp(pcCommand, CMD_GET_MAX_RFGAIN, strlen(CMD_GET_MAX_RFGAIN)) == 0)
+		else if (strncasecmp(pcCommand, CMD_GET_MAX_RFGAIN, strlen(CMD_GET_MAX_RFGAIN)) == 0)
 			i4BytesWritten = priv_driver_get_maxrfgain(prNetDev, pcCommand, i4TotalLen);
-		else if (strnicmp(pcCommand, CMD_NOISE_HISTOGRAM, strlen(CMD_NOISE_HISTOGRAM)) == 0)
+		else if (strncasecmp(pcCommand, CMD_NOISE_HISTOGRAM, strlen(CMD_NOISE_HISTOGRAM)) == 0)
 			i4BytesWritten = priv_driver_noise_histogram(prNetDev, pcCommand, i4TotalLen);
-		else if (strnicmp(pcCommand, CMD_SET_ADM_CTRL, strlen(CMD_SET_ADM_CTRL)) == 0)
+		else if (strncasecmp(pcCommand, CMD_SET_ADM_CTRL, strlen(CMD_SET_ADM_CTRL)) == 0)
 			i4BytesWritten = priv_driver_set_adm_ctrl(prNetDev, pcCommand, i4TotalLen);
-		else if (strnicmp(pcCommand, CMD_SET_BCN_TH, strlen(CMD_SET_BCN_TH)) == 0)
+		else if (strncasecmp(pcCommand, CMD_SET_BCN_TH, strlen(CMD_SET_BCN_TH)) == 0)
 			i4BytesWritten = priv_driver_set_bcn_th(prNetDev, pcCommand, i4TotalLen);
-		else if (strnicmp(pcCommand, CMD_GET_BCN_TH, strlen(CMD_GET_BCN_TH)) == 0)
+		else if (strncasecmp(pcCommand, CMD_GET_BCN_TH, strlen(CMD_GET_BCN_TH)) == 0)
 			i4BytesWritten = priv_driver_get_bcn_th(prNetDev, pcCommand, i4TotalLen);
 #endif
 		else

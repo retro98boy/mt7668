@@ -671,10 +671,6 @@ static inline void kalCfg80211ScanDone(struct cfg80211_scan_request *request,
 /* Move memory block with specific size */
 #define kalMemMove(pvDst, pvSrc, u4Size)            memmove(pvDst, pvSrc, u4Size)
 
-#if KERNEL_VERSION(4, 0, 0) <= LINUX_VERSION_CODE
-#define strnicmp(s1, s2, n)                         strncasecmp(s1, s2, n)
-#endif
-
 /* string operation */
 #define kalStrCpy(dest, src)                        strcpy(dest, src)
 #define kalStrCmp(ct, cs)                           strcmp(ct, cs)
@@ -684,7 +680,6 @@ static inline void kalCfg80211ScanDone(struct cfg80211_scan_request *request,
 #define kalStrnChr(s, n, c)                         strnchr(s, n, c)
 #define kalStrLen(s)                                strlen(s)
 #define kalStrnLen(s, b)                            strnlen(s, b)
-/* #define kalStrniCmp(s, n)                        strnicmp(s, n)	*/
 /* #define kalStrtoul(cp, endp, base)               simple_strtoul(cp, endp, base) */
 /* #define kalStrtol(cp, endp, base)                simple_strtol(cp, endp, base) */
 #define kalkStrtou8(cp, base, resp)                 kstrtou8(cp, base, resp)
