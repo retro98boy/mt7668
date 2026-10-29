@@ -18,7 +18,6 @@
 #include <linux/version.h>
 
 /* It's for reset procedure */
-#include <linux/of_gpio.h>
 #include <linux/mmc/host.h>
 
 /**
@@ -53,14 +52,6 @@
 #define FIXED_STPBT_MAJOR_DEV_ID 111
 
 /**
- * GPIO PIN configureation
- */
-#ifndef BT_DONGLE_RESET_GPIO_PIN
-	#define BT_DONGLE_RESET_GPIO_PIN	220
-#endif /* BT_DONGLE_RESET_GPIO_PIN */
-
-
-/**
  * WoBLE by BLE RC
  */
 #define SUPPORT_ANDROID 0 /*Linux build fail due to wake_lock, please set SUPPORT_ANDROID 0 for Linux*/
@@ -83,8 +74,6 @@
 /**
  * Support toggle GPIO
  */
-#define MT76x8_PMU_EN_PIN_NAME		"mt76x8_pmu_en_gpio"
-#define MT76x8_PMU_EN_DELAY_NAME	"mt76x8_pmu_en_delay"
 #define MT76x8_PMU_EN_DEFAULT_DELAY	(5) /* Default delay 5ms */
 
 #endif /* __BTMTK_CONFIG_H__ */

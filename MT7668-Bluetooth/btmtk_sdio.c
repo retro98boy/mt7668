@@ -30,6 +30,7 @@
 #include <linux/spinlock.h>
 #include <linux/kallsyms.h>
 #include <linux/device.h>
+#include <linux/gpio/consumer.h>
 
 /* Define for proce node */
 #include <linux/proc_fs.h>
@@ -3895,36 +3896,41 @@ static int btmtk_sdio_set_card_clkpd(int on)
 /*toggle PMU enable*/
 static int btmtk_sdio_toggle_rst_pin(void)
 {
-	uint32_t pmu_en_delay = MT76x8_PMU_EN_DEFAULT_DELAY;
-	int pmu_en;
-	struct device *prDev;
+	struct gpio_desc *pmu_en;
+	struct device *dev;
+	int ret;
 
 	if (g_card == NULL) {
 		pr_err("g_card is NULL return\n");
-		return -1;
+		return -ENODEV;
 	}
+	dev = mmc_dev(g_card->func->card->host);
+	pmu_en = gpiod_get(dev, "mt76x8-pmu-en", GPIOD_ASIS);
+	if (IS_ERR(pmu_en)) {
+		ret = PTR_ERR(pmu_en);
+		dev_err(dev, "Failed to get PMU enable GPIO: %d\n", ret);
+		return ret;
+	}
+
 	sdio_claim_host(g_card->func);
 	btmtk_sdio_set_card_clkpd(0);
 	sdio_release_host(g_card->func);
-	prDev = mmc_dev(g_card->func->card->host);
-	if (!prDev) {
-		pr_err("unable to get struct dev for BT\n");
-		return -1;
+
+	ret = gpiod_direction_output(pmu_en, 0);
+	if (ret) {
+		dev_err(dev, "Failed to deactivate PMU enable GPIO: %d\n", ret);
+		goto out;
 	}
-	pmu_en = of_get_named_gpio(prDev->of_node, MT76x8_PMU_EN_PIN_NAME, 0);
-	pr_info("%s pmu_en %d\n", __func__, pmu_en);
-	if (gpio_is_valid(pmu_en)) {
-		gpio_direction_output(pmu_en, 0);
-		mdelay(pmu_en_delay);
-		gpio_direction_output(pmu_en, 1);
-		pr_info("%s: %s pull low/high done\n", __func__,
-				MT76x8_PMU_EN_PIN_NAME);
-	} else {
-		pr_err("%s: *** Invalid GPIO %s ***\n", __func__,
-				MT76x8_PMU_EN_PIN_NAME);
-		return -1;
+	mdelay(MT76x8_PMU_EN_DEFAULT_DELAY);
+	ret = gpiod_set_value_cansleep(pmu_en, 1);
+	if (ret) {
+		dev_err(dev, "Failed to activate PMU enable GPIO: %d\n", ret);
+		goto out;
 	}
-	return 0;
+	dev_info(dev, "PMU enable reset complete\n");
+out:
+	gpiod_put(pmu_en);
+	return ret;
 }
 
 int btmtk_sdio_notify_wlan_remove_end(void)
