@@ -946,7 +946,7 @@ BOOLEAN glRegisterP2P(P_GLUE_INFO_T prGlueInfo, const char *prDevName, const cha
 		COPY_MAC_ADDR(rMacAddr, prAdapter->rMyMacAddr);
 		rMacAddr[0] |= 0x2;
 		rMacAddr[0] ^= i << 2;	/* change to local administrated address */
-		kalMemCopy(prGlueInfo->prP2PInfo[i]->prDevHandler->dev_addr, rMacAddr, ETH_ALEN);
+		eth_hw_addr_set(prGlueInfo->prP2PInfo[i]->prDevHandler, rMacAddr);
 		kalMemCopy(prGlueInfo->prP2PInfo[i]->prDevHandler->perm_addr,
 			prGlueInfo->prP2PInfo[i]->prDevHandler->dev_addr,
 			   ETH_ALEN);

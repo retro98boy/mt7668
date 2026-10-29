@@ -2496,7 +2496,7 @@ static INT_32 wlanProbe(PVOID pvData, PVOID pvDriverData)
 				DBGLOG(INIT, WARN, "set MAC addr fail 0x%lx\n", rStatus);
 				prGlueInfo->u4ReadyFlag = 0;
 			} else {
-				kalMemCopy(prGlueInfo->prDevHandler->dev_addr, &MacAddr.sa_data, ETH_ALEN);
+				eth_hw_addr_set(prGlueInfo->prDevHandler, (const u8 *)MacAddr.sa_data);
 				kalMemCopy(prGlueInfo->prDevHandler->perm_addr,
 					   prGlueInfo->prDevHandler->dev_addr, ETH_ALEN);
 
