@@ -787,11 +787,11 @@ do { \
 
 #define MSEC_TO_JIFFIES(_msec)      msecs_to_jiffies(_msec)
 
-#define KAL_TIME_INTERVAL_DECLARATION()		struct timeval __rTs, __rTe
-#define KAL_REC_TIME_START()				do_gettimeofday(&__rTs)
-#define KAL_REC_TIME_END()					do_gettimeofday(&__rTe)
+#define KAL_TIME_INTERVAL_DECLARATION()		ktime_t __rTs, __rTe
+#define KAL_REC_TIME_START()				(__rTs = ktime_get())
+#define KAL_REC_TIME_END()					(__rTe = ktime_get())
 #define KAL_GET_TIME_INTERVAL() \
-	((SEC_TO_USEC(__rTe.tv_sec) + __rTe.tv_usec) - (SEC_TO_USEC(__rTs.tv_sec) + __rTs.tv_usec))
+	ktime_us_delta(__rTe, __rTs)
 #define KAL_ADD_TIME_INTERVAL(_Interval) \
 	{ \
 		(_Interval) += KAL_GET_TIME_INTERVAL(); \

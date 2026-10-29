@@ -31,6 +31,7 @@
 #include <linux/kallsyms.h>
 #include <linux/device.h>
 #include <linux/gpio/consumer.h>
+#include <linux/timekeeping.h>
 
 /* Define for proce node */
 #include <linux/proc_fs.h>
@@ -877,30 +878,9 @@ static int btmtk_sdio_readl(u32 offset,  u32 *val)
 	return ret;
 }
 
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(5,4,210))
-struct timeval {
-	__kernel_old_time_t	tv_sec;		/* seconds */
-	__kernel_suseconds_t	tv_usec;	/* microseconds */
-};
-#endif
-
-static void btmtk_sdio_do_gettimeofday(struct timeval *tv)
-{
-#if (KERNEL_VERSION(4,19,85) > LINUX_VERSION_CODE)
-	do_gettimeofday(tv);
-#else
-	struct timespec64 ts;
-	ktime_get_real_ts64(&ts);
-	tv->tv_sec = ts.tv_sec;
-	tv->tv_usec = ts.tv_nsec/1000;
-#endif
-}
-
 static unsigned int btmtk_sdio_get_microseconds(void)
 {
-	struct timeval now = {0};
-	btmtk_sdio_do_gettimeofday(&now);
-	return now.tv_sec * 1000000 + now.tv_usec;
+	return ktime_to_us(ktime_get_real());
 }
 
 static void btmtk_sdio_hci_snoop_save(u8 type, u8 *buf, u32 len)
