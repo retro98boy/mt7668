@@ -3922,7 +3922,7 @@ static int btmtk_sdio_toggle_rst_pin(void)
 		goto out;
 	}
 	mdelay(MT76x8_PMU_EN_DEFAULT_DELAY);
-	ret = gpiod_set_value_cansleep(pmu_en, 1);
+	ret = gpiod_direction_output(pmu_en, 1);
 	if (ret) {
 		dev_err(dev, "Failed to activate PMU enable GPIO: %d\n", ret);
 		goto out;
