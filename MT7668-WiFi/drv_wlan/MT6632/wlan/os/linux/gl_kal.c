@@ -3126,7 +3126,7 @@ static int idme_get_mac_addr(unsigned char *mac_addr, size_t addr_len)
 {
 	unsigned char buf[IFHWADDRLEN * 2 + 1] = {""}, str[3] = {""};
 	int i, mac[IFHWADDRLEN];
-	mm_segment_t old_fs;
+	ssize_t bytes;
 	struct file *f;
 	size_t len;
 
@@ -3141,17 +3141,9 @@ static int idme_get_mac_addr(unsigned char *mac_addr, size_t addr_len)
 		return -1;
 	}
 
-#ifdef get_fs
-	old_fs = get_fs();
-	set_fs(KERNEL_DS);
-#endif
-	f->f_op->read(f, buf, IFHWADDRLEN * 2, &f->f_pos);
+	bytes = kernel_read(f, buf, IFHWADDRLEN * 2, &f->f_pos);
 	filp_close(f, NULL);
-#ifdef get_fs
-	set_fs(old_fs);
-#endif
-
-	if (strlen(buf) != IFHWADDRLEN * 2)
+	if (bytes != IFHWADDRLEN * 2)
 		goto bailout;
 
 	for (i = 0; i < IFHWADDRLEN; i++) {
@@ -4054,23 +4046,7 @@ UINT_8 kalGetRsnIeMfpCap(IN P_GLUE_INFO_T prGlueInfo)
 
 struct file *kalFileOpen(const char *path, int flags, int rights)
 {
-	struct file *filp = NULL;
-	mm_segment_t oldfs;
-	int err = 0;
-
-#ifdef get_fs
-	oldfs = get_fs();
-	set_fs(KERNEL_DS);
-#endif
-	filp = filp_open(path, flags, rights);
-#ifdef get_fs
-	set_fs(oldfs);
-#endif
-	if (IS_ERR(filp)) {
-		err = PTR_ERR(filp);
-		return NULL;
-	}
-	return filp;
+	return filp_open(path, flags, rights);
 }
 
 VOID kalFileClose(struct file *file)
@@ -4078,102 +4054,86 @@ VOID kalFileClose(struct file *file)
 	filp_close(file, NULL);
 }
 
-UINT_32 kalFileRead(struct file *file, unsigned long long offset, unsigned char *data, unsigned int size)
+ssize_t kalFileRead(struct file *file, loff_t offset, unsigned char *data, size_t size)
 {
-	mm_segment_t oldfs;
-	int ret;
-
-#ifdef get_fs
-	oldfs = get_fs();
-	set_fs(KERNEL_DS);
-#endif
-
-	ret = kernel_read(file, data, size, &offset);
-
-#ifdef get_fs
-	set_fs(oldfs);
-#endif
-	return ret;
+	return kernel_read(file, data, size, &offset);
 }
 
-UINT_32 kalFileWrite(struct file *file, unsigned long long offset, unsigned char *data, unsigned int size)
+ssize_t kalFileWrite(struct file *file, loff_t offset, const unsigned char *data, size_t size)
 {
-	mm_segment_t oldfs;
-	int ret;
-
-#ifdef get_fs
-	oldfs = get_fs();
-	set_fs(KERNEL_DS);
-#endif
-
-	ret = kernel_write(file, data, size, &offset);
-
-#ifdef get_fs
-	set_fs(oldfs);
-#endif
-	return ret;
+	return kernel_write(file, data, size, &offset);
 }
 
-UINT_32 kalWriteToFile(const PUINT_8 pucPath, BOOLEAN fgDoAppend, PUINT_8 pucData, UINT_32 u4Size)
+ssize_t kalWriteToFile(const PUINT_8 pucPath, BOOLEAN fgDoAppend, PUINT_8 pucData, UINT_32 u4Size)
 {
-	struct file *file = NULL;
-	UINT_32 ret = 0; /* size been written */
-	UINT_32 u4Flags = 0;
+	struct file *file;
+	size_t written = 0;
+	ssize_t ret = 0;
+	int flags = fgDoAppend ? O_APPEND : O_TRUNC;
 
-	if (fgDoAppend)
-		u4Flags = O_APPEND;
+	file = kalFileOpen(pucPath, O_WRONLY | O_CREAT | flags, S_IRWXU);
+	if (IS_ERR(file))
+		return PTR_ERR(file);
 
-	file = kalFileOpen(pucPath, O_WRONLY | O_CREAT | u4Flags, S_IRWXU);
-	if (file) {
-		ret = kalFileWrite(file, 0, pucData, u4Size);
-		kalFileClose(file);
+	while (written < u4Size) {
+		ret = kalFileWrite(file, written, pucData + written, u4Size - written);
+		if (ret <= 0) {
+			if (!ret)
+				ret = -EIO;
+			goto out;
+		}
+		written += ret;
 	}
-
+	ret = written;
+out:
+	kalFileClose(file);
 	return ret;
 }
 
 INT_32 kalReadToFile(const PUINT_8 pucPath, PUINT_8 pucData, UINT_32 u4Size, PUINT_32 pu4ReadSize)
 {
-	struct file *file = NULL;
-	INT_32 ret = -1;
-	UINT_32 u4ReadSize = 0;
+	struct file *file;
+	size_t total = 0;
+	ssize_t ret;
 
-	DBGLOG(INIT, INFO, "kalReadToFile() path %s\n", pucPath);
-
+	if (pu4ReadSize)
+		*pu4ReadSize = 0;
 	file = kalFileOpen(pucPath, O_RDONLY, 0);
+	if (IS_ERR(file))
+		return PTR_ERR(file);
 
-	if ((file != NULL) && !IS_ERR(file)) {
-		u4ReadSize = kalFileRead(file, 0, pucData, u4Size);
-		kalFileClose(file);
-		if (pu4ReadSize)
-			*pu4ReadSize = u4ReadSize;
-		ret = 0;
+	while (total < u4Size) {
+		ret = kalFileRead(file, total, pucData + total, u4Size - total);
+		if (ret < 0) {
+			kalFileClose(file);
+			return ret;
+		}
+		if (!ret)
+			break;
+		total += ret;
 	}
-	return ret;
+	kalFileClose(file);
+	if (pu4ReadSize)
+		*pu4ReadSize = total;
+	return 0;
 }
 
-UINT_32 kalCheckPath(const PUINT_8 pucPath)
+INT_32 kalCheckPath(const PUINT_8 pucPath)
 {
-	struct file *file = NULL;
-	UINT_32 u4Flags = 0;
+	struct file *file = kalFileOpen(pucPath, O_WRONLY | O_CREAT, S_IRWXU);
 
-	file = kalFileOpen(pucPath, O_WRONLY | O_CREAT | u4Flags, S_IRWXU);
-	if (!file)
+	if (IS_ERR(file))
 		return -1;
-
 	kalFileClose(file);
 	return 1;
 }
 
-UINT_32 kalTrunkPath(const PUINT_8 pucPath)
+INT_32 kalTrunkPath(const PUINT_8 pucPath)
 {
-	struct file *file = NULL;
-	UINT_32 u4Flags = O_TRUNC;
+	struct file *file = kalFileOpen(pucPath, O_WRONLY | O_CREAT | O_TRUNC, S_IRWXU);
 
-	file = kalFileOpen(pucPath, O_WRONLY | O_CREAT | u4Flags, S_IRWXU);
-	if (!file)
+	if (IS_ERR(file))
 		return -1;
-
 	kalFileClose(file);
 	return 1;
 }
@@ -5108,7 +5068,7 @@ UINT_64 kalGetBootTime(void)
 WLAN_STATUS kalOpenCorDumpFile(BOOLEAN fgIsN9)
 {
 	/* Move open-op to kalWriteCorDumpFile(). Empty files only */
-	UINT_32 ret;
+	ssize_t ret;
 	PUINT_8 apucFileName;
 
 	if (fgIsN9)
@@ -5123,7 +5083,7 @@ WLAN_STATUS kalOpenCorDumpFile(BOOLEAN fgIsN9)
 
 WLAN_STATUS kalWriteCorDumpFile(PUINT_8 pucBuffer, UINT_16 u2Size, BOOLEAN fgIsN9)
 {
-	UINT_32 ret;
+	ssize_t ret;
 	PUINT_8 apucFileName;
 
 	if (fgIsN9)
@@ -5133,7 +5093,7 @@ WLAN_STATUS kalWriteCorDumpFile(PUINT_8 pucBuffer, UINT_16 u2Size, BOOLEAN fgIsN
 
 	ret = kalWriteToFile(apucFileName, TRUE, pucBuffer, u2Size);
 
-	return (ret >= 0)?WLAN_STATUS_SUCCESS:WLAN_STATUS_FAILURE;
+	return (ret == u2Size)?WLAN_STATUS_SUCCESS:WLAN_STATUS_FAILURE;
 }
 
 WLAN_STATUS kalCloseCorDumpFile(BOOLEAN fgIsN9)

@@ -1495,6 +1495,7 @@ INT_32 GetIQData(INT_32 **prIQAry, UINT_32 *prDataLen, UINT_32 u4IQ, UINT_32 u4G
 	struct file *file = NULL;
 
 	*prIQAry = g_au4IQData;
+	*prDataLen = 0;
 
 	/* sprintf(aucPath, "/pattern.txt");             // CSD's Pattern */
 	snprintf(aucPath, sizeof(aucPath), "/tmp/dump_out_%05ld_WF%d.txt", (g_u2DumpIndex - 1), u4GetWf1);
@@ -1505,12 +1506,19 @@ INT_32 GetIQData(INT_32 **prIQAry, UINT_32 *prDataLen, UINT_32 u4IQ, UINT_32 u4G
 
 	file = kalFileOpen(aucPath, O_RDONLY, 0);
 
-	if ((file != NULL) && !IS_ERR(file)) {
+	if (!IS_ERR(file)) {
+		ret = 0;
 		/* read 1K data per time */
 		for (i = 0; i < RTN_IQ_DATA_LEN / sizeof(UINT_32);
 		     i++, g_au4Offset[u4GetWf1][u4IQ] += IQ_FILE_LINE_OFFSET) {
-			if (kalFileRead(file, g_au4Offset[u4GetWf1][u4IQ], aucData, IQ_FILE_IQ_STR_LEN) == 0)
+			ssize_t bytes = kalFileRead(file, g_au4Offset[u4GetWf1][u4IQ],
+						    aucData, IQ_FILE_IQ_STR_LEN);
+
+			if (bytes != IQ_FILE_IQ_STR_LEN) {
+				if (bytes < 0)
+					ret = bytes;
 				break;
+			}
 
 			count = 0;
 
@@ -1525,7 +1533,8 @@ INT_32 GetIQData(INT_32 **prIQAry, UINT_32 *prDataLen, UINT_32 u4IQ, UINT_32 u4G
 		}
 		*prDataLen = i * sizeof(UINT_32);
 		kalFileClose(file);
-		ret = 0;
+	} else {
+		ret = PTR_ERR(file);
 	}
 
 	DBGLOG(INIT, INFO, "MT6632 : QA_AGENT GetIQData prDataLen = %d\n", *prDataLen);

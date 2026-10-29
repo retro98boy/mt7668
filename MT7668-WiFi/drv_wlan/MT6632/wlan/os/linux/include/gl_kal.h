@@ -1095,11 +1095,11 @@ UINT_8 kalGetRsnIeMfpCap(IN P_GLUE_INFO_T prGlueInfo);
 /*----------------------------------------------------------------------------*/
 /* file opetation                                                             */
 /*----------------------------------------------------------------------------*/
-UINT_32 kalWriteToFile(const PUINT_8 pucPath, BOOLEAN fgDoAppend, PUINT_8 pucData, UINT_32 u4Size);
+ssize_t kalWriteToFile(const PUINT_8 pucPath, BOOLEAN fgDoAppend, PUINT_8 pucData, UINT_32 u4Size);
 
-UINT_32 kalCheckPath(const PUINT_8 pucPath);
+INT_32 kalCheckPath(const PUINT_8 pucPath);
 
-UINT_32 kalTrunkPath(const PUINT_8 pucPath);
+INT_32 kalTrunkPath(const PUINT_8 pucPath);
 
 INT_32 kalReadToFile(const PUINT_8 pucPath, PUINT_8 pucData, UINT_32 u4Size, PUINT_32 pu4ReadSize);
 
@@ -1154,7 +1154,7 @@ struct file *kalFileOpen(const char *path, int flags, int rights);
 
 VOID kalFileClose(struct file *file);
 
-UINT_32 kalFileRead(struct file *file, unsigned long long offset, unsigned char *data, unsigned int size);
+ssize_t kalFileRead(struct file *file, loff_t offset, unsigned char *data, size_t size);
 #endif
 
 #if CFG_SUPPORT_SDIO_READ_WRITE_PATTERN

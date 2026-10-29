@@ -3066,7 +3066,7 @@ static int btmtk_sdio_card_to_host(struct btmtk_private *priv, const u8 *event, 
 					snprintf(fw_dump_file_name, sizeof(fw_dump_file_name),
 						"%s_%d", dump_file_name, current_fwdump_file_number);
 					pr_warn("%s : open file %s\n", __func__, fw_dump_file_name);
-					fw_dump_file = filp_open(fw_dump_file_name, O_RDWR | O_CREAT, 0644);
+					fw_dump_file = filp_open(fw_dump_file_name, O_WRONLY | O_CREAT | O_TRUNC, 0644);
 
 					if (!(IS_ERR(fw_dump_file))) {
 						pr_warn("%s : open file %s success\n", __func__,
@@ -3078,21 +3078,6 @@ static int btmtk_sdio_card_to_host(struct btmtk_private *priv, const u8 *event, 
 						continue;
 					}
 
-					if (fw_dump_file && fw_dump_file->f_op == NULL) {
-						pr_warn("%s : %s fw_dump_file->f_op is NULL, close\n",
-							fw_dump_file_name, __func__);
-						filp_close(fw_dump_file, NULL);
-						fw_dump_file = NULL;
-						continue;
-					}
-
-					if (fw_dump_file && fw_dump_file->f_op->write == NULL) {
-						pr_warn("%s : %s fw_dump_file->f_op->write is NULL, close\n",
-							fw_dump_file_name, __func__);
-						filp_close(fw_dump_file, NULL);
-						fw_dump_file = NULL;
-						continue;
-					}
 					/* open file success */
 					current_fwdump_file_number++;
 					break;
@@ -3102,10 +3087,22 @@ static int btmtk_sdio_card_to_host(struct btmtk_private *priv, const u8 *event, 
 		}
 
 #if SAVE_FW_DUMP_IN_KERNEL
-		if ((dump_len > 0) && fw_dump_file && fw_dump_file->f_op
-				&& fw_dump_file->f_op->write)
-			fw_dump_file->f_op->write(fw_dump_file, &rxbuf[SDIO_HEADER_LEN + 9],
-				dump_len, &fw_dump_file->f_pos);
+		if (dump_len > 0 && fw_dump_file) {
+			size_t written = 0;
+
+			while (written < dump_len) {
+				ssize_t ret = kernel_write(fw_dump_file,
+					&rxbuf[SDIO_HEADER_LEN + 9 + written],
+					dump_len - written, &fw_dump_file->f_pos);
+
+				if (ret <= 0) {
+					pr_warn("Failed to write firmware dump: %zd\n", ret);
+					btmtk_sdio_close_coredump_file();
+					break;
+				}
+				written += ret;
+			}
+		}
 #endif /* SAVE_FW_DUMP_IN_KERNEL */
 
 		btmtk_sdio_dispatch_fwlog(&rxbuf[MTK_SDIO_PACKET_HEADER_SIZE + 5], buf_len);

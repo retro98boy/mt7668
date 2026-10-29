@@ -311,61 +311,23 @@ int glUnregisterEarlySuspend(struct early_suspend *prDesc)
 *           actual length of data being read
 */
 /*----------------------------------------------------------------------------*/
-static int nvram_read(char *filename, char *buf, ssize_t len, int offset)
+static ssize_t nvram_read(char *filename, char *buf, ssize_t len, int offset)
 {
 #if CFG_SUPPORT_NVRAM
 	struct file *fd;
-	int retLen = -1;
+	loff_t pos = offset;
+	ssize_t ret;
 
-#ifdef get_fs
-	mm_segment_t old_fs = get_fs();
-
-	set_fs(KERNEL_DS);
-
-#endif
+	if (len < 0 || offset < 0)
+		return -EINVAL;
 	fd = filp_open(filename, O_RDONLY, 0644);
-
-	if (IS_ERR(fd)) {
-		DBGLOG(INIT, INFO, "[nvram_read] : failed to open!!\n");
-#ifdef get_fs
-		set_fs(old_fs);
-#endif
-		return -1;
-	}
-
-	do {
-		if ((fd->f_op == NULL) || (fd->f_op->read == NULL)) {
-			DBGLOG(INIT, INFO, "[nvram_read] : file can not be read!!\n");
-			break;
-		}
-
-		if (fd->f_pos != offset) {
-			if (fd->f_op->llseek) {
-				if (fd->f_op->llseek(fd, offset, 0) != offset) {
-					DBGLOG(INIT, INFO, "[nvram_read] : failed to seek!!\n");
-					break;
-				}
-			} else {
-				fd->f_pos = offset;
-			}
-		}
-
-		retLen = fd->f_op->read(fd, buf, len, &fd->f_pos);
-
-	} while (FALSE);
-
+	if (IS_ERR(fd))
+		return PTR_ERR(fd);
+	ret = kernel_read(fd, buf, len, &pos);
 	filp_close(fd, NULL);
-
-#ifdef get_fs
-	set_fs(old_fs);
-#endif
-
-	return retLen;
-
-#else /* !CFG_SUPPORT_NVRAM */
-
+	return ret;
+#else
 	return -EIO;
-
 #endif
 }
 
@@ -382,60 +344,23 @@ static int nvram_read(char *filename, char *buf, ssize_t len, int offset)
 *           actual length of data being written
 */
 /*----------------------------------------------------------------------------*/
-static int nvram_write(char *filename, char *buf, ssize_t len, int offset)
+static ssize_t nvram_write(char *filename, char *buf, ssize_t len, int offset)
 {
 #if CFG_SUPPORT_NVRAM
 	struct file *fd;
-	int retLen = -1;
+	loff_t pos = offset;
+	ssize_t ret;
 
-#ifdef get_fs
-	mm_segment_t old_fs = get_fs();
-
-	set_fs(KERNEL_DS);
-#endif
+	if (len < 0 || offset < 0)
+		return -EINVAL;
 	fd = filp_open(filename, O_WRONLY | O_CREAT, 0644);
-
-	if (IS_ERR(fd)) {
-		DBGLOG(INIT, INFO, "[nvram_write] : failed to open!!\n");
-#ifdef get_fs
-		set_fs(old_fs);
-#endif
-		return -1;
-	}
-
-	do {
-		if ((fd->f_op == NULL) || (fd->f_op->write == NULL)) {
-			DBGLOG(INIT, INFO, "[nvram_write] : file can not be write!!\n");
-			break;
-		}
-		/* End of if */
-		if (fd->f_pos != offset) {
-			if (fd->f_op->llseek) {
-				if (fd->f_op->llseek(fd, offset, 0) != offset) {
-					DBGLOG(INIT, INFO, "[nvram_write] : failed to seek!!\n");
-					break;
-				}
-			} else {
-				fd->f_pos = offset;
-			}
-		}
-
-		retLen = fd->f_op->write(fd, buf, len, &fd->f_pos);
-
-	} while (FALSE);
-
+	if (IS_ERR(fd))
+		return PTR_ERR(fd);
+	ret = kernel_write(fd, buf, len, &pos);
 	filp_close(fd, NULL);
-
-#ifdef get_fs
-	set_fs(old_fs);
-#endif
-
-	return retLen;
-
-#else /* !CFG_SUPPORT_NVRAMS */
-
+	return ret;
+#else
 	return -EIO;
-
 #endif
 }
 
