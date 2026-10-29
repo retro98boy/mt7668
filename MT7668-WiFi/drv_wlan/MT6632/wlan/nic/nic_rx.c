@@ -3038,21 +3038,21 @@ VOID nicRxQueryStatus(IN P_ADAPTER_T prAdapter, IN PUINT_8 pucBuffer, OUT PUINT_
 	/* if (pucBuffer) {} *//* For Windows, we'll print directly instead of sprintf() */
 	ASSERT(pu4Count);
 
-#define SPRINTF_RX_QSTATUS(arg) \
+#define RX_STATUS_APPEND(...) \
 	{ \
-		u4CurrCount = scnprintf(pucCurrBuf, *pu4Count, PRINTF_ARG arg); \
+		u4CurrCount = scnprintf(pucCurrBuf, *pu4Count, __VA_ARGS__); \
 		pucCurrBuf += (UINT_8)u4CurrCount; \
 		*pu4Count -= u4CurrCount; \
 	}
 
 
-	SPRINTF_RX_QSTATUS(("\n\nRX CTRL STATUS:"));
-	SPRINTF_RX_QSTATUS(("\n==============="));
-	SPRINTF_RX_QSTATUS(("\nFREE RFB w/i BUF LIST :%9ld", prRxCtrl->rFreeSwRfbList.u4NumElem));
-	SPRINTF_RX_QSTATUS(("\nFREE RFB w/o BUF LIST :%9ld", prRxCtrl->rIndicatedRfbList.u4NumElem));
-	SPRINTF_RX_QSTATUS(("\nRECEIVED RFB LIST     :%9ld", prRxCtrl->rReceivedRfbList.u4NumElem));
+	RX_STATUS_APPEND("\n\nRX CTRL STATUS:");
+	RX_STATUS_APPEND("\n===============");
+	RX_STATUS_APPEND("\nFREE RFB w/i BUF LIST :%9ld", prRxCtrl->rFreeSwRfbList.u4NumElem);
+	RX_STATUS_APPEND("\nFREE RFB w/o BUF LIST :%9ld", prRxCtrl->rIndicatedRfbList.u4NumElem);
+	RX_STATUS_APPEND("\nRECEIVED RFB LIST     :%9ld", prRxCtrl->rReceivedRfbList.u4NumElem);
 
-	SPRINTF_RX_QSTATUS(("\n\n"));
+	RX_STATUS_APPEND("\n\n");
 
 	/* *pu4Count = (UINT_32)((UINT_32)pucCurrBuf - (UINT_32)pucBuffer); */
 
