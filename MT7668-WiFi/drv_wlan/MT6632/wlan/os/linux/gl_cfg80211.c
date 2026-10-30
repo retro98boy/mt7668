@@ -3310,35 +3310,6 @@ enum regd_state regd_state_machine(IN struct regulatory_request *pRequest)
 
 
 void
-mtk_apply_custom_regulatory(IN struct wiphy *pWiphy,
-							IN const struct ieee80211_regdomain *pRegdom)
-{
-	u32 band_idx, ch_idx;
-	struct ieee80211_supported_band *sband;
-	struct ieee80211_channel *chan;
-
-	DBGLOG(RLM, INFO, "%s()\n", __func__);
-
-	/* to reset cha->flags*/
-	for (band_idx = 0; band_idx < KAL_NUM_BANDS; band_idx++) {
-		sband = pWiphy->bands[band_idx];
-		if (!sband)
-			continue;
-
-		for (ch_idx = 0; ch_idx < sband->n_channels; ch_idx++) {
-			chan = &sband->channels[ch_idx];
-
-			/*reset chan->flags*/
-			chan->flags = 0;
-		}
-
-	}
-
-	/* update to kernel */
-	wiphy_apply_custom_regulatory(pWiphy, pRegdom);
-}
-
-void
 mtk_reg_notify(IN struct wiphy *pWiphy,
 			   IN struct regulatory_request *pRequest)
 {
@@ -3405,7 +3376,7 @@ mtk_reg_notify(IN struct wiphy *pWiphy,
 	/*
 	 * State machine transition
 	 */
-	DBGLOG(RLM, INFO, "request->alpha2=%s, initiator=%x, intersect=%d\n",
+	DBGLOG(RLM, INFO, "request->alpha2=%.2s, initiator=%x, intersect=%d\n",
 			pRequest->alpha2, pRequest->initiator, pRequest->intersect);
 
 	old_state = rlmDomainGetCtrlState();
@@ -3459,33 +3430,7 @@ mtk_reg_notify(IN struct wiphy *pWiphy,
 DOMAIN_SEND_CMD:
 	DBGLOG(RLM, INFO, "g_mtk_regd_control.alpha2 = 0x%x\n", rlmDomainGetCountryCode());
 
-	/*
-	 * Check if using customized regulatory rule
-	 */
-	if (rlmDomainIsUsingLocalRegDomainDataBase()) {
-		const struct ieee80211_regdomain *pRegdom;
-		u32 country_code = rlmDomainGetCountryCode();
-		char alpha2[4];
-
-		/*fetch regulatory rules from local data base*/
-		alpha2[0] = country_code & 0xFF;
-		alpha2[1] = (country_code >> 8) & 0xFF;
-		alpha2[2] = (country_code >> 16) & 0xFF;
-		alpha2[3] = (country_code >> 24) & 0xFF;
-
-		pRegdom = rlmDomainSearchRegdomainFromLocalDataBase(alpha2);
-		if (!pRegdom) {
-			DBGLOG(RLM, ERROR, "%s(): Error, Cannot find the correct RegDomain. country = %s\n",
-				__func__, rlmDomainGetCountryCode());
-
-			rlmDomainAssert(0);
-			return;
-		}
-
-
-		mtk_apply_custom_regulatory(pWiphy, pRegdom);
-	}
-
+	/* cfg80211 applies channel rules before calling this notifier. */
 
 	/*
 	 * Parsing channels

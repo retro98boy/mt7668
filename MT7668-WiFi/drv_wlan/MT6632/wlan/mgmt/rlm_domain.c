@@ -3111,19 +3111,19 @@ WLAN_STATUS rlmDomainExtractSingleSkuInfoFromFirmware(IN P_ADAPTER_T prAdapter, 
 void rlmDomainSendInfoToFirmware(IN P_ADAPTER_T prAdapter)
 {
 #if (CFG_SUPPORT_SINGLE_SKU == 1)
-	struct regulatory_request request;
-	struct regulatory_request *prReq = NULL;
-
 	if (!regd_is_single_sku_en())
-		return; /*not support single sku*/
-
-	if (g_mtk_regd_control.isEfuseCountryCodeUsed) {
-		request.initiator = NL80211_REGDOM_SET_BY_DRIVER;
-		prReq = &request;
-	}
+		return;
 
 	g_mtk_regd_control.pGlueInfo = prAdapter->prGlueInfo;
-	mtk_reg_notify(priv_to_wiphy(prAdapter->prGlueInfo), prReq);
+	mtk_reg_notify(priv_to_wiphy(prAdapter->prGlueInfo), NULL);
+
+	if (g_mtk_regd_control.isEfuseCountryCodeUsed) {
+		u32 country_code = rlmDomainGetCountryCode();
+		char alpha2[2] = { country_code & 0xff,
+				  (country_code >> 8) & 0xff };
+
+		regulatory_hint(priv_to_wiphy(prAdapter->prGlueInfo), alpha2);
+	}
 #endif
 }
 
@@ -3149,16 +3149,8 @@ ENUM_CHNL_EXT_T rlmSelectSecondaryChannelType(P_ADAPTER_T prAdapter, ENUM_BAND_T
 void rlmDomainOidSetCountry(IN P_ADAPTER_T prAdapter, char *country, u8 size_of_country)
 {
 #if (CFG_SUPPORT_SINGLE_SKU == 1)
-	struct regulatory_request request;
-
-	if (rlmDomainIsUsingLocalRegDomainDataBase()) {
-		rlmDomainSetTempCountryCode(country, size_of_country);
-		request.initiator = NL80211_REGDOM_SET_BY_DRIVER;
-		mtk_reg_notify(priv_to_wiphy(prAdapter->prGlueInfo), &request);
-	} else {
-		DBGLOG(RLM, INFO, "%s(): Using driver hint to query CRDA getting regd.\n", __func__);
-		regulatory_hint(priv_to_wiphy(prAdapter->prGlueInfo), country);
-	}
+	rlmDomainSetTempCountryCode(country, size_of_country);
+	regulatory_hint(priv_to_wiphy(prAdapter->prGlueInfo), country);
 #endif
 }
 
