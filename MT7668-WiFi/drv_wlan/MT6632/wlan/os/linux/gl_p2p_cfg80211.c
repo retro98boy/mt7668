@@ -620,7 +620,7 @@ int mtk_p2p_cfg80211_del_iface(struct wiphy *wiphy, struct wireless_dev *wdev)
 }				/* mtk_p2p_cfg80211_del_iface */
 
 int mtk_p2p_cfg80211_add_key(struct wiphy *wiphy,
-			     struct net_device *ndev,
+			     struct MTK_CFG_IFACE_TYPE *iface,
 			     MTK_CFG_KEY_LINK_PARAM u8 key_index, bool pairwise, const u8 *mac_addr, struct key_params *params)
 {
 	P_GLUE_INFO_T prGlueInfo = NULL;
@@ -642,7 +642,7 @@ int mtk_p2p_cfg80211_add_key(struct wiphy *wiphy,
 
 	prGlueInfo = *((P_GLUE_INFO_T *) wiphy_priv(wiphy));
 
-	if (mtk_Netdev_To_RoleIdx(prGlueInfo, ndev, &ucRoleIdx) != 0)
+	if (mtk_Netdev_To_RoleIdx(prGlueInfo, kalCfg80211Netdev(iface), &ucRoleIdx) != 0)
 		return -EINVAL;
 #if DBG
 	DBGLOG(RSN, TRACE, "mtk_p2p_cfg80211_add_key\n");
@@ -762,7 +762,7 @@ int mtk_p2p_cfg80211_add_key(struct wiphy *wiphy,
 }
 
 int mtk_p2p_cfg80211_get_key(struct wiphy *wiphy,
-			     struct net_device *ndev,
+			     struct MTK_CFG_IFACE_TYPE *iface,
 			     MTK_CFG_KEY_LINK_PARAM u8 key_index,
 			     bool pairwise,
 			     const u8 *mac_addr, void *cookie, void (*callback) (void *cookie, struct key_params *)
@@ -780,7 +780,7 @@ int mtk_p2p_cfg80211_get_key(struct wiphy *wiphy,
 }
 
 int mtk_p2p_cfg80211_del_key(struct wiphy *wiphy,
-			     struct net_device *ndev, MTK_CFG_KEY_LINK_PARAM u8 key_index, bool pairwise, const u8 *mac_addr)
+			     struct MTK_CFG_IFACE_TYPE *iface, MTK_CFG_KEY_LINK_PARAM u8 key_index, bool pairwise, const u8 *mac_addr)
 {
 	P_GLUE_INFO_T prGlueInfo = NULL;
 	PARAM_REMOVE_KEY_T rRemoveKey;
@@ -793,7 +793,7 @@ int mtk_p2p_cfg80211_del_key(struct wiphy *wiphy,
 
 	prGlueInfo = *((P_GLUE_INFO_T *) wiphy_priv(wiphy));
 
-	if (mtk_Netdev_To_RoleIdx(prGlueInfo, ndev, &ucRoleIdx) < 0)
+	if (mtk_Netdev_To_RoleIdx(prGlueInfo, kalCfg80211Netdev(iface), &ucRoleIdx) < 0)
 		return -EINVAL;
 #if DBG
 	DBGLOG(RSN, TRACE, "mtk_p2p_cfg80211_del_key\n");
@@ -891,7 +891,7 @@ mtk_p2p_cfg80211_set_default_key(struct wiphy *wiphy,
  *         others:  failure
  */
 /*----------------------------------------------------------------------------*/
-int mtk_p2p_cfg80211_set_mgmt_key(struct wiphy *wiphy, struct net_device *dev, MTK_CFG_KEY_LINK_PARAM u8 key_index)
+int mtk_p2p_cfg80211_set_mgmt_key(struct wiphy *wiphy, struct MTK_CFG_IFACE_TYPE *iface, MTK_CFG_KEY_LINK_PARAM u8 key_index)
 {
 	DBGLOG(RSN, INFO, "mtk_p2p_cfg80211_set_mgmt_key, kid:%d\n", key_index);
 
@@ -899,7 +899,7 @@ int mtk_p2p_cfg80211_set_mgmt_key(struct wiphy *wiphy, struct net_device *dev, M
 }
 
 #if KERNEL_VERSION(3, 16, 0) <= CFG80211_VERSION_CODE
-int mtk_p2p_cfg80211_get_station(struct wiphy *wiphy, struct net_device *ndev,
+int mtk_p2p_cfg80211_get_station(struct wiphy *wiphy, struct MTK_CFG_IFACE_TYPE *iface,
 		const u8 *mac, struct station_info *sinfo)
 {
 	INT_32 i4RetRslt = -EINVAL;
@@ -911,14 +911,14 @@ int mtk_p2p_cfg80211_get_station(struct wiphy *wiphy, struct net_device *ndev,
 	ASSERT(wiphy);
 
 	do {
-		if ((wiphy == NULL) || (ndev == NULL) || (sinfo == NULL) || (mac == NULL))
+		if ((wiphy == NULL) || (kalCfg80211Netdev(iface) == NULL) || (sinfo == NULL) || (mac == NULL))
 			break;
 
 		DBGLOG(P2P, TRACE, "mtk_p2p_cfg80211_get_station\n");
 
 		prGlueInfo = *((P_GLUE_INFO_T *) wiphy_priv(wiphy));
 
-		if (mtk_Netdev_To_RoleIdx(prGlueInfo, ndev, &ucRoleIdx) != 0)
+		if (mtk_Netdev_To_RoleIdx(prGlueInfo, kalCfg80211Netdev(iface), &ucRoleIdx) != 0)
 			return -EINVAL;
 
 		prP2pGlueInfo = prGlueInfo->prP2PInfo[ucRoleIdx];
@@ -1963,8 +1963,9 @@ int mtk_p2p_cfg80211_disassoc(struct wiphy *wiphy, struct net_device *dev, struc
 
 int mtk_p2p_cfg80211_remain_on_channel(struct wiphy *wiphy,
 				       struct wireless_dev *wdev,
-				       struct ieee80211_channel *chan, unsigned int duration, u64 *cookie)
+				       struct ieee80211_channel *chan, unsigned int duration, MTK_CFG_COOKIE_PARAM MTK_CFG_ROC_ADDR_PARAM)
 {
+	UINT_64 u8Cookie;
 	INT_32 i4Rslt = -EINVAL;
 	P_GLUE_INFO_T prGlueInfo = (P_GLUE_INFO_T) NULL;
 	P_GL_P2P_DEV_INFO_T prGlueP2pDevInfo = (P_GL_P2P_DEV_INFO_T) NULL;
@@ -1975,14 +1976,14 @@ int mtk_p2p_cfg80211_remain_on_channel(struct wiphy *wiphy,
 	do {
 		if ((wiphy == NULL) ||
 		    /* (dev == NULL) || */
-		    (chan == NULL) || (cookie == NULL)) {
+		    (chan == NULL) || (!kalCfg80211CookieValid(cookie))) {
 			break;
 		}
 
 		prGlueInfo = *((P_GLUE_INFO_T *) wiphy_priv(wiphy));
 		prGlueP2pDevInfo = prGlueInfo->prP2PDevInfo;
 
-		*cookie = prGlueP2pDevInfo->u8Cookie++;
+		u8Cookie = kalCfg80211NextCookie(cookie, prGlueP2pDevInfo->u8Cookie);
 
 		prMsgChnlReq = cnmMemAlloc(prGlueInfo->prAdapter, RAM_TYPE_MSG, sizeof(MSG_P2P_CHNL_REQUEST_T));
 
@@ -1992,10 +1993,10 @@ int mtk_p2p_cfg80211_remain_on_channel(struct wiphy *wiphy,
 			break;
 		}
 
-		DBGLOG(P2P, TRACE, "mtk_p2p_cfg80211_remain_on_channel:%d\n", (INT_32) *cookie);
+		DBGLOG(P2P, TRACE, "mtk_p2p_cfg80211_remain_on_channel:%d\n", (INT_32) u8Cookie);
 
 		prMsgChnlReq->rMsgHdr.eMsgId = MID_MNY_P2P_CHNL_REQ;
-		prMsgChnlReq->u8Cookie = *cookie;
+		prMsgChnlReq->u8Cookie = u8Cookie;
 		prMsgChnlReq->u4Duration = duration;
 		prMsgChnlReq->eChnlReqType = CH_REQ_TYPE_P2P_LISTEN;
 
@@ -2051,8 +2052,9 @@ int mtk_p2p_cfg80211_cancel_remain_on_channel(struct wiphy *wiphy, struct wirele
 int mtk_p2p_cfg80211_mgmt_tx(struct wiphy *wiphy,
 				struct wireless_dev *wdev,
 				struct cfg80211_mgmt_tx_params *params,
-				u64 *cookie)
+				MTK_CFG_COOKIE_PARAM)
 {
+	UINT_64 u8Cookie;
 	P_GLUE_INFO_T prGlueInfo = (P_GLUE_INFO_T) NULL;
 	P_GL_P2P_INFO_T prGlueP2pInfo = (P_GL_P2P_INFO_T) NULL;
 	INT_32 i4Rslt = -EINVAL;
@@ -2064,7 +2066,7 @@ int mtk_p2p_cfg80211_mgmt_tx(struct wiphy *wiphy,
 	struct net_device *dev = NULL;
 
 	do {
-		if ((wiphy == NULL) || (wdev == NULL) || (params == 0) || (cookie == NULL))
+		if ((wiphy == NULL) || (wdev == NULL) || (params == 0) || (!kalCfg80211CookieValid(cookie)))
 			break;
 
 		prGlueInfo = *((P_GLUE_INFO_T *) wiphy_priv(wiphy));
@@ -2086,7 +2088,7 @@ int mtk_p2p_cfg80211_mgmt_tx(struct wiphy *wiphy,
 			}
 		}
 		/* The owner of this function please check following line*/
-		*cookie = prGlueInfo->u8Cookie++;
+		u8Cookie = kalCfg80211NextCookie(cookie, prGlueInfo->u8Cookie);
 
 		/* Channel & Channel Type & Wait time are ignored. */
 		prMsgTxReq = cnmMemAlloc(prGlueInfo->prAdapter, RAM_TYPE_MSG, sizeof(MSG_P2P_MGMT_TX_REQUEST_T));
@@ -2127,7 +2129,7 @@ int mtk_p2p_cfg80211_mgmt_tx(struct wiphy *wiphy,
 			break;
 		}
 
-		prMsgTxReq->u8Cookie = *cookie;
+		prMsgTxReq->u8Cookie = u8Cookie;
 		prMsgTxReq->rMsgHdr.eMsgId = MID_MNY_P2P_MGMT_TX;
 		prMsgTxReq->ucBssIdx = ucBssIdx;
 
@@ -2137,7 +2139,7 @@ int mtk_p2p_cfg80211_mgmt_tx(struct wiphy *wiphy,
 
 		kalMemCopy(pucFrameBuf, params->buf, params->len);
 
-		*pu8GlCookie = *cookie;
+		*pu8GlCookie = u8Cookie;
 
 		prMgmtFrame->u2FrameLength = params->len;
 
@@ -2331,7 +2333,7 @@ int mtk_p2p_cfg80211_change_bss(struct wiphy *wiphy, struct net_device *dev, str
 #if KERNEL_VERSION(3, 16, 0) <= CFG80211_VERSION_CODE
 #if KERNEL_VERSION(3, 19, 0) <= CFG80211_VERSION_CODE
 static const u8 bcast_addr[ETH_ALEN] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
-int mtk_p2p_cfg80211_del_station(struct wiphy *wiphy, struct net_device *dev, struct station_del_parameters *params)
+int mtk_p2p_cfg80211_del_station(struct wiphy *wiphy, struct MTK_CFG_IFACE_TYPE *iface, struct station_del_parameters *params)
 {
 	const u8 *mac = params->mac ? params->mac : bcast_addr;
 	P_GLUE_INFO_T prGlueInfo = (P_GLUE_INFO_T) NULL;
@@ -2341,7 +2343,7 @@ int mtk_p2p_cfg80211_del_station(struct wiphy *wiphy, struct net_device *dev, st
 	UINT_8 ucRoleIdx = 0;
 
 	do {
-		if ((wiphy == NULL) || (dev == NULL))
+		if ((wiphy == NULL) || (kalCfg80211Netdev(iface) == NULL))
 			break;
 
 		if (mac == NULL)
@@ -2352,7 +2354,7 @@ int mtk_p2p_cfg80211_del_station(struct wiphy *wiphy, struct net_device *dev, st
 		prGlueInfo = *((P_GLUE_INFO_T *) wiphy_priv(wiphy));
 
 
-		if (mtk_Netdev_To_RoleIdx(prGlueInfo, dev, &ucRoleIdx) < 0)
+		if (mtk_Netdev_To_RoleIdx(prGlueInfo, kalCfg80211Netdev(iface), &ucRoleIdx) < 0)
 			break;
 		/* prDisconnectMsg = (P_MSG_P2P_CONNECTION_ABORT_T)kalMemAlloc(sizeof(MSG_P2P_CONNECTION_ABORT_T),
 		 * VIR_MEM_TYPE);

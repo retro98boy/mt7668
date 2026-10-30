@@ -184,7 +184,7 @@ mtk_cfg80211_change_iface(struct wiphy *wiphy,
 /*----------------------------------------------------------------------------*/
 int
 mtk_cfg80211_add_key(struct wiphy *wiphy,
-		     struct net_device *ndev,
+		     struct MTK_CFG_IFACE_TYPE *iface,
 		     MTK_CFG_KEY_LINK_PARAM
 		     u8 key_index, bool pairwise, const u8 *mac_addr, struct key_params *params)
 {
@@ -343,7 +343,7 @@ mtk_cfg80211_add_key(struct wiphy *wiphy,
 /*----------------------------------------------------------------------------*/
 int
 mtk_cfg80211_get_key(struct wiphy *wiphy,
-		     struct net_device *ndev,
+		     struct MTK_CFG_IFACE_TYPE *iface,
 		     MTK_CFG_KEY_LINK_PARAM
 		     u8 key_index,
 		     bool pairwise,
@@ -374,7 +374,7 @@ mtk_cfg80211_get_key(struct wiphy *wiphy,
  *         others:  failure
  */
 /*----------------------------------------------------------------------------*/
-int mtk_cfg80211_del_key(struct wiphy *wiphy, struct net_device *ndev, 
+int mtk_cfg80211_del_key(struct wiphy *wiphy, struct MTK_CFG_IFACE_TYPE *iface,
 		     MTK_CFG_KEY_LINK_PARAM
 		     u8 key_index, bool pairwise, const u8 *mac_addr)
 {
@@ -488,7 +488,7 @@ mtk_cfg80211_set_default_key(struct wiphy *wiphy, struct net_device *ndev,
  */
 /*----------------------------------------------------------------------------*/
 #if KERNEL_VERSION(3, 16, 0) <= CFG80211_VERSION_CODE
-int mtk_cfg80211_get_station(struct wiphy *wiphy, struct net_device *ndev, const u8 *mac, struct station_info *sinfo)
+int mtk_cfg80211_get_station(struct wiphy *wiphy, struct MTK_CFG_IFACE_TYPE *iface, const u8 *mac, struct station_info *sinfo)
 {
 	P_GLUE_INFO_T prGlueInfo = NULL;
 	WLAN_STATUS rStatus;
@@ -498,6 +498,9 @@ int mtk_cfg80211_get_station(struct wiphy *wiphy, struct net_device *ndev, const
 	PARAM_GET_STA_STA_STATISTICS rQueryStaStatistics;
 	UINT_32 u4TotalError;
 	struct net_device_stats *prDevStats;
+
+	if (!kalCfg80211Netdev(iface))
+		return -EOPNOTSUPP;
 
 	prGlueInfo = (P_GLUE_INFO_T) wiphy_priv(wiphy);
 	ASSERT(prGlueInfo);
@@ -568,7 +571,7 @@ int mtk_cfg80211_get_station(struct wiphy *wiphy, struct net_device *ndev, const
 	}
 
 	/* Get statistics from net_dev */
-	prDevStats = (struct net_device_stats *)kalGetStats(ndev);
+	prDevStats = (struct net_device_stats *)kalGetStats(kalCfg80211Netdev(iface));
 
 	if (prDevStats) {
 		/* 4. fill RX_PACKETS */
@@ -1725,8 +1728,9 @@ void mtk_cfg80211_mgmt_frame_register(IN struct wiphy *wiphy,
 /*----------------------------------------------------------------------------*/
 int mtk_cfg80211_remain_on_channel(struct wiphy *wiphy,
 				   struct wireless_dev *wdev,
-				   struct ieee80211_channel *chan, unsigned int duration, u64 *cookie)
+				   struct ieee80211_channel *chan, unsigned int duration, MTK_CFG_COOKIE_PARAM MTK_CFG_ROC_ADDR_PARAM)
 {
+	UINT_64 u8Cookie;
 	P_GLUE_INFO_T prGlueInfo = NULL;
 	INT_32 i4Rslt = -EINVAL;
 	P_MSG_REMAIN_ON_CHANNEL_T prMsgChnlReq = (P_MSG_REMAIN_ON_CHANNEL_T) NULL;
@@ -1735,7 +1739,7 @@ int mtk_cfg80211_remain_on_channel(struct wiphy *wiphy,
 		if ((wiphy == NULL)
 		    || (wdev == NULL)
 		    || (chan == NULL)
-		    || (cookie == NULL)) {
+		    || (!kalCfg80211CookieValid(cookie))) {
 			break;
 		}
 
@@ -1746,7 +1750,7 @@ int mtk_cfg80211_remain_on_channel(struct wiphy *wiphy,
 		DBGLOG(INIT, INFO, "--> %s()\n", __func__);
 #endif
 
-		*cookie = prGlueInfo->u8Cookie++;
+		u8Cookie = kalCfg80211NextCookie(cookie, prGlueInfo->u8Cookie);
 
 		prMsgChnlReq = cnmMemAlloc(prGlueInfo->prAdapter, RAM_TYPE_MSG, sizeof(MSG_REMAIN_ON_CHANNEL_T));
 
@@ -1757,7 +1761,7 @@ int mtk_cfg80211_remain_on_channel(struct wiphy *wiphy,
 		}
 
 		prMsgChnlReq->rMsgHdr.eMsgId = MID_MNY_AIS_REMAIN_ON_CHANNEL;
-		prMsgChnlReq->u8Cookie = *cookie;
+		prMsgChnlReq->u8Cookie = u8Cookie;
 		prMsgChnlReq->u4DurationMs = duration;
 
 		prMsgChnlReq->ucChannelNum = nicFreq2ChannelNum(chan->center_freq * 1000);
@@ -1845,8 +1849,9 @@ int mtk_cfg80211_cancel_remain_on_channel(struct wiphy *wiphy, struct wireless_d
 int mtk_cfg80211_mgmt_tx(struct wiphy *wiphy,
 			struct wireless_dev *wdev,
 			struct cfg80211_mgmt_tx_params *params,
-			u64 *cookie)
+			MTK_CFG_COOKIE_PARAM)
 {
+	UINT_64 u8Cookie;
 	P_GLUE_INFO_T prGlueInfo = NULL;
 	INT_32 i4Rslt = -EINVAL;
 	P_MSG_MGMT_TX_REQUEST_T prMsgTxReq = (P_MSG_MGMT_TX_REQUEST_T) NULL;
@@ -1854,13 +1859,13 @@ int mtk_cfg80211_mgmt_tx(struct wiphy *wiphy,
 	PUINT_8 pucFrameBuf = (PUINT_8) NULL;
 
 	do {
-		if ((wiphy == NULL) || (wdev == NULL) || (params == 0) || (cookie == NULL))
+		if ((wiphy == NULL) || (wdev == NULL) || (params == 0) || (!kalCfg80211CookieValid(cookie)))
 			break;
 
 		prGlueInfo = (P_GLUE_INFO_T) wiphy_priv(wiphy);
 		ASSERT(prGlueInfo);
 
-		*cookie = prGlueInfo->u8Cookie++;
+		u8Cookie = kalCfg80211NextCookie(cookie, prGlueInfo->u8Cookie);
 
 		/* Channel & Channel Type & Wait time are ignored. */
 		prMsgTxReq = cnmMemAlloc(prGlueInfo->prAdapter, RAM_TYPE_MSG, sizeof(MSG_MGMT_TX_REQUEST_T));
@@ -1882,7 +1887,7 @@ int mtk_cfg80211_mgmt_tx(struct wiphy *wiphy,
 			break;
 		}
 
-		prMsgTxReq->u8Cookie = *cookie;
+		prMsgTxReq->u8Cookie = u8Cookie;
 		prMsgTxReq->rMsgHdr.eMsgId = MID_MNY_AIS_MGMT_TX;
 
 		pucFrameBuf = (PUINT_8) ((ULONG) prMgmtFrame->prPacket + MAC_TX_RESERVED_FIELD);
@@ -2692,7 +2697,7 @@ nla_put_failure:
 /*----------------------------------------------------------------------------*/
 #if KERNEL_VERSION(3, 16, 0) <= CFG80211_VERSION_CODE
 int
-mtk_cfg80211_change_station(struct wiphy *wiphy, struct net_device *ndev, const u8 *mac,
+mtk_cfg80211_change_station(struct wiphy *wiphy, struct MTK_CFG_IFACE_TYPE *iface, const u8 *mac,
 			    struct station_parameters *params)
 {
 
@@ -2909,7 +2914,7 @@ mtk_cfg80211_change_station(struct wiphy *wiphy, struct net_device *ndev, u8 *ma
  */
 /*----------------------------------------------------------------------------*/
 #if KERNEL_VERSION(3, 16, 0) <= CFG80211_VERSION_CODE
-int mtk_cfg80211_add_station(struct wiphy *wiphy, struct net_device *ndev,
+int mtk_cfg80211_add_station(struct wiphy *wiphy, struct MTK_CFG_IFACE_TYPE *iface,
 			     const u8 *mac, struct station_parameters *params)
 {
 	/* return 0; */
@@ -2998,7 +3003,7 @@ int mtk_cfg80211_add_station(struct wiphy *wiphy, struct net_device *ndev, u8 *m
 #if KERNEL_VERSION(3, 16, 0) <= CFG80211_VERSION_CODE
 #if KERNEL_VERSION(3, 19, 0) <= CFG80211_VERSION_CODE
 static const u8 bcast_addr[ETH_ALEN] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
-int mtk_cfg80211_del_station(struct wiphy *wiphy, struct net_device *ndev, struct station_del_parameters *params)
+int mtk_cfg80211_del_station(struct wiphy *wiphy, struct MTK_CFG_IFACE_TYPE *iface, struct station_del_parameters *params)
 {
 	/* fgIsTDLSlinkEnable = 0; */
 

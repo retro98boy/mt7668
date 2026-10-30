@@ -1279,14 +1279,12 @@ kalP2PGOStationUpdate(IN P_GLUE_INFO_T prGlueInfo,
 			rStationInfo.assoc_req_ies = prCliStaRec->pucAssocReqIe;
 			rStationInfo.assoc_req_ies_len = prCliStaRec->u2AssocReqIeLen;
 
-			cfg80211_new_sta(prP2pGlueInfo->aprRoleHandler,
-					 /* struct net_device * dev, */
+			cfg80211_new_sta(kalCfg80211Iface(prP2pGlueInfo->aprRoleHandler),
 					 prCliStaRec->aucMacAddr, &rStationInfo, GFP_KERNEL);
 		} else {
 			++prP2pGlueInfo->i4Generation;
 
-			cfg80211_del_sta(prP2pGlueInfo->aprRoleHandler,
-					 /* struct net_device * dev, */
+			cfg80211_del_sta(kalCfg80211Iface(prP2pGlueInfo->aprRoleHandler),
 					 prCliStaRec->aucMacAddr, GFP_KERNEL);
 		}
 

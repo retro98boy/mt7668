@@ -93,4 +93,30 @@
 #define kalCfg80211RoamLink(info) (info)
 #endif
 
+#if CFG80211_VERSION_CODE >= KERNEL_VERSION(7, 1, 0)
+#define MTK_CFG_IFACE_TYPE wireless_dev
+#define kalCfg80211Iface(dev) ((dev)->ieee80211_ptr)
+#define kalCfg80211Netdev(iface) ((iface) ? (iface)->netdev : NULL)
+#else
+#define MTK_CFG_IFACE_TYPE net_device
+#define kalCfg80211Iface(dev) (dev)
+#define kalCfg80211Netdev(iface) (iface)
+#endif
+
+#if CFG80211_VERSION_CODE >= KERNEL_VERSION(7, 2, 0)
+#define MTK_CFG_ROC_ADDR_PARAM , const u8 *rx_addr
+#else
+#define MTK_CFG_ROC_ADDR_PARAM
+#endif
+
+#if CFG80211_VERSION_CODE >= KERNEL_VERSION(7, 3, 0)
+#define MTK_CFG_COOKIE_PARAM u64 cookie
+#define kalCfg80211CookieValid(cookie) true
+#define kalCfg80211NextCookie(cookie, counter) (cookie)
+#else
+#define MTK_CFG_COOKIE_PARAM u64 *cookie
+#define kalCfg80211CookieValid(cookie) ((cookie) != NULL)
+#define kalCfg80211NextCookie(cookie, counter) (*(cookie) = (counter)++)
+#endif
+
 #endif
