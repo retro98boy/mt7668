@@ -943,7 +943,7 @@ typedef struct _WIFI_CMD_T {
 	UINT_8 ucReserved2[3];
 	UINT_32 au4Reserved3[4];	/* padding fields */
 #endif
-	UINT_8 aucBuffer[0];
+	UINT_8 aucBuffer[];
 } WIFI_CMD_T, *P_WIFI_CMD_T;
 
 /* for Command Packet (via HIF-TX) */
@@ -963,7 +963,7 @@ typedef struct _WIFI_EVENT_T {
 	UINT_8 aucReserved2[2];
 	UINT_8 ucS2DIndex;
 
-	UINT_8 aucBuffer[0];
+	UINT_8 aucBuffer[];
 } WIFI_EVENT_T, *P_WIFI_EVENT_T;
 
 /* CMD_ID_TEST_CTRL */
@@ -1182,7 +1182,7 @@ typedef struct _EVENT_NIC_CAPABILITY_T {
 typedef struct _EVENT_NIC_CAPABILITY_V2_T {
 	UINT_16 u2TotalElementNum;
 	UINT_8 aucReserved[2];
-	UINT_8 aucBuffer[0];
+	UINT_8 aucBuffer[];
 } EVENT_NIC_CAPABILITY_V2_T, *P_EVENT_NIC_CAPABILITY_V2_T;
 
 typedef struct _NIC_CAPABILITY_V2_ELEMENT {
@@ -1441,7 +1441,7 @@ typedef struct _CMD_DEV_INFO_UPDATE_T {
 	UINT_16 u2TotalElementNum;
 	UINT_8 ucAppendCmdTLV;
 	UINT_8 aucReserve[3];
-	UINT_8 aucBuffer[0];
+	UINT_8 aucBuffer[];
 	/* CMD_DEVINFO_ACTIVE_T rCmdDevInfoActive; */
 } CMD_DEV_INFO_UPDATE_T, *P_CMD_DEV_INFO_UPDATE_T;
 
@@ -1452,7 +1452,7 @@ typedef struct _CMD_BSS_INFO_UPDATE_T {
 	UINT_16 u2TotalElementNum;
 	UINT_32 u4Reserve;
 	/* CMD_BSSINFO_BASIC_T rCmdBssInfoBasic; */
-	UINT_8 aucBuffer[0];
+	UINT_8 aucBuffer[];
 } CMD_BSS_INFO_UPDATE_T, *P_CMD_BSS_INFO_UPDATE_T;
 
 /*  STA record command */
@@ -1462,7 +1462,7 @@ typedef struct _CMD_STAREC_UPDATE_T {
 	UINT_8 ucWlanIdx;
 	UINT_16 u2TotalElementNum;
 	UINT_32 u4Reserve;
-	UINT_8 aucBuffer[0];
+	UINT_8 aucBuffer[];
 } CMD_STAREC_UPDATE_T, *P_CMD_STAREC_UPDATE_T;
 
 typedef struct _EVENT_PFMU_TAG_READ_T {
@@ -1734,11 +1734,16 @@ typedef struct _CMD_SET_DOMAIN_INFO_T {
 /* CMD_SET_PWR_LIMIT_TABLE */
 typedef struct _CMD_CHANNEL_POWER_LIMIT {
 	UINT_8 ucCentralCh;
-	INT_8 cPwrLimitCCK;
-	INT_8 cPwrLimit20;
-	INT_8 cPwrLimit40;
-	INT_8 cPwrLimit80;
-	INT_8 cPwrLimit160;
+	union {
+		struct {
+			INT_8 cPwrLimitCCK;
+			INT_8 cPwrLimit20;
+			INT_8 cPwrLimit40;
+			INT_8 cPwrLimit80;
+			INT_8 cPwrLimit160;
+		};
+		INT_8 acPwrLimit[5];
+	};
 	UINT_8 ucFlag;
 	UINT_8 aucReserved[1];
 } CMD_CHANNEL_POWER_LIMIT, *P_CMD_CHANNEL_POWER_LIMIT;
@@ -1804,7 +1809,7 @@ typedef struct _CMD_SET_COUNTRY_CHANNEL_POWER_LIMIT_V2_T {
 	UINT_8 eband; /*ENUM_BAND_T*/
 	UINT_8 usReserved[2];
 	UINT_32 countryCode;
-	CMD_CHANNEL_POWER_LIMIT_V2 rChannelPowerLimit[0];
+	CMD_CHANNEL_POWER_LIMIT_V2 rChannelPowerLimit[];
 } CMD_SET_COUNTRY_CHANNEL_POWER_LIMIT_V2_T, *P_CMD_SET_COUNTRY_CHANNEL_POWER_LIMIT_V2_T;
 
 #define TX_PWR_LIMIT_SECTION_NUM 5
@@ -3062,7 +3067,7 @@ typedef struct _EVENT_WIFI_RDD_TEST_T {
 	UINT_32 u4SubBandRssi1;
 	UINT_8 ucRddIdx;
 	UINT_8 aucReserve[3];
-	UINT_8 aucBuffer[0];
+	UINT_8 aucBuffer[];
 } EVENT_WIFI_RDD_TEST_T, *P_EVENT_WIFI_RDD_TEST_T;
 
 #if CFG_SUPPORT_MSP

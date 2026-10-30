@@ -11,6 +11,7 @@
  *  See http://www.gnu.org/licenses/gpl-2.0.html for more details.
  */
 
+#include "btmtk_compat.h"
 #include <linux/version.h>
 #include <linux/firmware.h>
 #include <linux/slab.h>
@@ -332,7 +333,7 @@ static pcheck_wlan_reset_state pf_check_wlan_rst_state;
 #endif
 
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(5,7,0))
-static void *get_symbol_addr(const char *symbol_name)
+static unsigned long get_symbol_addr(const char *symbol_name)
 {
 	struct kprobe kp = {0};
 	int ret;
@@ -342,12 +343,12 @@ static void *get_symbol_addr(const char *symbol_name)
 	ret = register_kprobe(&kp);
 	if (ret < 0) {
 		pr_err("register_kprobe:%s failed, returned %d\n", symbol_name, ret);
-		return NULL;
+		return 0;
 	}
 	pr_debug("symbol_name:%s addr=%px\n", symbol_name, kp.addr);
 	unregister_kprobe(&kp);
 
-	return kp.addr;
+	return (unsigned long)kp.addr;
 }
 #endif
 
@@ -3284,17 +3285,33 @@ SKIP_DUMP:
 		memcpy(fops_skb->data, skb->data, buf_len);
 		
 		{
-			struct sk_buff *skb_hci = bt_skb_alloc(buf_len, GFP_KERNEL);
-			skb_put(skb_hci, buf_len);
+			struct sk_buff *skb_hci = bt_skb_alloc(buf_len, GFP_ATOMIC);
 
-			memcpy(skb_hci->data, fops_skb->data, buf_len);
+			if (!skb_hci) {
+				kfree_skb(fops_skb);
+				ret = -ENOMEM;
+				goto exit;
+			}
+			skb_put_data(skb_hci, fops_skb->data, buf_len);
 			hci_skb_pkt_type(skb_hci) = type;
+
+			/* MT7668 advertises Set Default PHY but rejects the command. */
+			if (g_card->chip_id == 0x7668 && type == HCI_EVENT_PKT &&
+			    skb_hci->len >= HCI_EVENT_HDR_SIZE + sizeof(struct hci_ev_cmd_complete) +
+					   sizeof(struct hci_rp_read_local_commands) &&
+			    skb_hci->data[0] == HCI_EV_CMD_COMPLETE) {
+				struct hci_ev_cmd_complete *cc = (void *)(skb_hci->data + HCI_EVENT_HDR_SIZE);
+				struct hci_rp_read_local_commands *rp = (void *)(cc + 1);
+
+				if (cc->opcode == cpu_to_le16(HCI_OP_READ_LOCAL_COMMANDS) && !rp->status)
+					rp->commands[35] &= ~0x20;
+			}
 
 			ret = hci_recv_frame(hdev, skb_hci);
 			if (ret < 0)
-				printk(KERN_ERR "XXX: error recv frame: %d\n", ret);
+				pr_err("HCI receive failed: %d\n", ret);
 		}
-		
+
 		fops_skb->len = buf_len;
 
 		/* Drop BLE Advertising Reports to prevent memory leak */
@@ -4029,13 +4046,13 @@ retry_reset:
 	btmtk_sdio_set_no_fw_own(g_priv, FALSE);
 	msleep(100);
 	sdio_claim_host(g_card->func);
-	ret = sdio_reset_comm(g_card->func->card);
+	ret = btmtk_reset_card(g_card->func->card);
 	sdio_release_host(g_card->func);
 	if (ret) {
-		pr_warn("%s: sdio_reset_comm error %d\n", __func__, ret);
+		pr_warn("%s: mmc_sw_reset error %d\n", __func__, ret);
 		goto retry_reset;
 	}
-	pr_warn("%s: sdio_reset_comm done\n", __func__);
+	pr_warn("%s: mmc_sw_reset done\n", __func__);
 	msleep(100);
 	ret = btmtk_sdio_reset_fw(g_card);
 	if (ret) {
@@ -4241,7 +4258,7 @@ static int btmtk_sdio_probe(struct sdio_func *func,
 		card->suspend_count = 0;
 		pr_info("%s chip_id is %x\n", __func__, data->reg->chip_id);
 		/*allocate memory for woble_setting_file*/
-		g_card->woble_setting_file_name = kzalloc(MAX_BIN_FILE_NAME_LEN, GFP_KERNEL);
+		g_card->woble_setting_file_name = devm_kzalloc(&func->dev, MAX_BIN_FILE_NAME_LEN, GFP_KERNEL);
 		if (!g_card->woble_setting_file_name)
 			return -1;
 
@@ -4323,11 +4340,14 @@ static int btmtk_sdio_probe(struct sdio_func *func,
 
 	hdev->bus = HCI_SDIO;
 
+#ifdef HCI_PRIMARY
 	if (id->class == SDIO_CLASS_BT_AMP)
 		hdev->dev_type = HCI_AMP;
 	else
 		hdev->dev_type = HCI_PRIMARY;
 		
+#endif
+
 	SET_HCIDEV_DEV(hdev, &func->dev);
 
 	hdev->open     = btsdio_open;
@@ -4377,13 +4397,11 @@ unreg_dev:
 static void btmtk_sdio_remove(struct sdio_func *func)
 {
 	struct btmtk_sdio_card *card;
-	int ret;
 
 	pr_info("%s begin user_rmmod %d\n", __func__, user_rmmod);
 	probe_ready = false;
 	
 	hci_unregister_dev(hdev);
-	hci_free_dev(hdev);
 	
 	btmtk_sdio_set_no_fw_own(g_priv, FALSE);
 	if (func) {
@@ -4405,6 +4423,9 @@ static void btmtk_sdio_remove(struct sdio_func *func)
 #if SUPPORT_EINT
 			btmtk_sdio_woble_input_deinit(g_card);
 #endif
+#if (SUPPORT_UNIFY_WOBLE & SUPPORT_ANDROID)
+			wake_lock_destroy(&card->woble_wlock);
+#endif
 			btmtk_sdio_woble_free_setting();
 			pr_debug("unregester dev\n");
 			card->priv->surprise_removed = true;
@@ -4414,6 +4435,10 @@ static void btmtk_sdio_remove(struct sdio_func *func)
 				need_reset_stack = HW_ERR_CODE_CARD_DISC;
 		}
 	}
+	hci_free_dev(hdev);
+	hdev = NULL;
+	g_priv = NULL;
+	g_card = NULL;
 	pr_info("%s end\n", __func__);
 }
 
@@ -5843,7 +5868,7 @@ static int BTMTK_init(void)
 	pr_info("%s driver(major %d) installed.\n",
 			"BT_chrdevfwlog", BT_majorfwlog);
 
-	pBTClass = class_create(THIS_MODULE, "BT_chrdev");
+	pBTClass = btmtk_class_create("BT_chrdev");
 	if (IS_ERR(pBTClass)) {
 		pr_err("class create fail, error code(%ld)\n",
 			PTR_ERR(pBTClass));
@@ -5907,28 +5932,6 @@ static void BTMTK_exit(void)
 		g_proc_dir = NULL;
 		pr_info("proc device node and folder removed!!");
 	}
-
-	if (g_card) {
-		pr_info("%s 1\n", __func__);
-		if (g_card->woble_setting_file_name) {
-			pr_info("%s 2\n", __func__);
-			kfree(g_card->woble_setting_file_name);
-			pr_info("%s 3\n", __func__);
-			pr_info("free woble_setting_file_name done\n");
-		} else {
-			pr_err("%s no free woble_setting_file_name, g_card is not null\n", __func__);
-			pr_err("%s woble_setting_file_name is null\n", __func__);
-		}
-	} else
-		pr_err("no free woble_setting_file_name, g_card is null\n");
-
-#if (SUPPORT_UNIFY_WOBLE & SUPPORT_ANDROID)
-		pr_info("%s 4\n", __func__);
-		if (g_card)
-			wake_lock_destroy(&g_card->woble_wlock);
-		else
-			pr_err("%s:g_data is NULL, no destroy woble_wlock", __func__);
-#endif
 
 	pr_info("%s 5\n", __func__);
 	if (pBTDevfwlog) {
@@ -6034,8 +6037,8 @@ static void __exit btmtk_sdio_exit_module(void)
 {
 	/* Set the flag as user is removing this module. */
 	user_rmmod = 1;
-	BTMTK_exit();
 	sdio_unregister_driver(&bt_mtk_sdio);
+	BTMTK_exit();
 	btmtk_sdio_free_memory();
 #ifdef CONFIG_AMAZON_A2DP_TS
 	btif_ts_exit();

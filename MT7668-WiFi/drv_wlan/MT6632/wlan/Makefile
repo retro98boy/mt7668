@@ -6,6 +6,7 @@ export CONFIG_MTK_WIFI_ONLY=m
 export MODULE_NAME=wlan_mt76x8_sdio
 WLAN_CHIP_LIST:=-UMT6620 -UMT6628 -UMT5931 -UMT6630 -UMT6632
 ccflags-y += $(WLAN_CHIP_LIST)
+ccflags-y += -Werror=implicit-function-declaration -Werror=incompatible-pointer-types -Werror=attribute-warning
 
 #WLAN_CHIP_ID=$(MTK_COMBO_CHIP)
 ifeq ($(WLAN_CHIP_ID),)
@@ -17,7 +18,6 @@ ccflags-y += -DWLAN_INCLUDE_PROC
 ccflags-y += -DCFG_ANDROID_AOSP_PRIV_CMD
 ccflags-y += -DCFG_SUPPORT_AGPS_ASSIST=1
 ccflags-y += -DCFG_SUPPORT_TSF_USING_BOOTTIME=1
-ccflags-y += -Werror
 ccflags-y:=$(filter-out -U$(WLAN_CHIP_ID),$(ccflags-y))
 ccflags-y += -DLINUX -D$(WLAN_CHIP_ID)
 

@@ -5919,24 +5919,14 @@ static INT_32 HQA_MUSetSpeedUpLQ(struct net_device *prNetDev,
 static INT_32 HQA_MUSetMUTable(struct net_device *prNetDev,
 			       IN union iwreq_data *prIwReqData, HQA_CMD_FRAME *HqaCmdFrame)
 {
-	INT_32 i4Ret = 0;
-	UINT_8 *prTable;
-	UINT_16 u2Len = 0;
-	UINT_32 u4SuMu = 0;
+	INT_32 i4Ret;
+	UINT_16 u2Len = ntohs(HqaCmdFrame->Length);
+	size_t table_size = NUM_MUT_NR_NUM * NUM_MUT_FEC * NUM_MUT_MCS * NUM_MUT_INDEX;
 
-	prTable = kmalloc_array(u2Len, sizeof(UINT_8), GFP_KERNEL);
+	if (u2Len != sizeof(UINT_32) + table_size || u2Len > sizeof(HqaCmdFrame->Data))
+		return -EINVAL;
 
-	DBGLOG(RFTEST, INFO, "MT6632 : QA_AGENT HQA_MUSetMUTable\n");
-
-	u2Len = ntohl(HqaCmdFrame->Length) - sizeof(u4SuMu);
-
-	memcpy(&u4SuMu, HqaCmdFrame->Data + 4 * 0, 4);
-	u4SuMu = ntohl(u4SuMu);
-
-	memcpy(prTable, HqaCmdFrame->Data + 4, u2Len);
-
-	i4Ret = Set_MUSetMUTable(prNetDev, prTable);
-
+	i4Ret = Set_MUSetMUTable(prNetDev, HqaCmdFrame->Data + sizeof(UINT_32));
 	ResponseToQA(HqaCmdFrame, prIwReqData, 2, i4Ret);
 
 	return i4Ret;

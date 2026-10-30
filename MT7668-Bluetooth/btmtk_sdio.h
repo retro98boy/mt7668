@@ -394,7 +394,6 @@ static inline int is_mt7663(struct btmtk_sdio_card *data)
 #define FW_OWN_OFF "fw own off"
 #define FW_OWN_ON  "fw own on"
 
-extern int sdio_reset_comm(struct mmc_card *card);
 int btmtk_sdio_reset_dongle(void);
 #endif
 

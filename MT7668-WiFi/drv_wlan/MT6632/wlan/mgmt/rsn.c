@@ -1283,7 +1283,7 @@ VOID rsnGenerateRSNIE(IN P_ADAPTER_T prAdapter, IN P_MSDU_INFO_T prMsduInfo)
 		WLAN_SET_FIELD_32(&RSN_IE(pucBuffer)->u4GroupKeyCipherSuite,
 			GET_BSS_INFO_BY_INDEX(prAdapter, ucBssIndex)->
 			u4RsnSelectedGroupCipher);	/* Group key suite */
-		cp = (PUCHAR) &RSN_IE(pucBuffer)->aucPairwiseKeyCipherSuite1[0];
+		cp = pucBuffer + OFFSET_OF(RSN_INFO_ELEM_T, aucPairwiseKeyCipherSuite1);
 		WLAN_SET_FIELD_16(&RSN_IE(pucBuffer)->u2PairwiseKeyCipherSuiteCount, 1);
 		WLAN_SET_FIELD_32(cp, GET_BSS_INFO_BY_INDEX(prAdapter, ucBssIndex)->u4RsnSelectedPairwiseCipher);
 		cp += 4;
@@ -2594,8 +2594,9 @@ UINT_8 rsnApCheckSaQueryTimeout(IN P_ADAPTER_T prAdapter, IN P_STA_RECORD_T prSt
 *      Called by: AAA module, Handle TX SAQ request
 */
 /*----------------------------------------------------------------------------*/
-void rsnApStartSaQueryTimer(IN P_ADAPTER_T prAdapter, IN P_STA_RECORD_T prStaRec, IN ULONG ulParamPtr)
+static void rsnApStartSaQueryTimer(IN P_ADAPTER_T prAdapter, IN ULONG ulParamPtr)
 {
+	P_STA_RECORD_T prStaRec = (P_STA_RECORD_T)ulParamPtr;
 	P_BSS_INFO_T prBssInfo;
 	P_MSDU_INFO_T prMsduInfo;
 	P_ACTION_SA_QUERY_FRAME prTxFrame;
@@ -2691,11 +2692,11 @@ void rsnApStartSaQuery(IN P_ADAPTER_T prAdapter, IN P_STA_RECORD_T prStaRec)
 	if (prStaRec) {
 		cnmTimerStopTimer(prAdapter, &prStaRec->rPmfCfg.rSAQueryTimer);
 		cnmTimerInitTimer(prAdapter, &prStaRec->rPmfCfg.rSAQueryTimer,
-			(PFN_MGMT_TIMEOUT_FUNC)rsnApStartSaQueryTimer, (ULONG) prStaRec);
+			rsnApStartSaQueryTimer, (ULONG) prStaRec);
 	}
 
 	if (prStaRec->rPmfCfg.u4SAQueryCount == 0)
-		rsnApStartSaQueryTimer(prAdapter, prStaRec, (ULONG) NULL);
+		rsnApStartSaQueryTimer(prAdapter, (ULONG) prStaRec);
 }
 
 /*----------------------------------------------------------------------------*/

@@ -1879,10 +1879,7 @@ VOID TdlsCmdTestRxIndicatePkts(GLUE_INFO_T *prGlueInfo, struct sk_buff *prSkb)
 	prSkb->protocol = eth_type_trans(prSkb, prNetDev);
 	prSkb->dev = prNetDev;
 
-	if (!in_interrupt())
-		netif_rx_ni(prSkb);	/* only in non-interrupt context */
-	else
-		netif_rx(prSkb);
+	kalNetifRx(prSkb);
 }
 #endif
 

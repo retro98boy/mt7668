@@ -179,7 +179,7 @@ typedef struct _INIT_WIFI_CMD_T {
 
 	UINT_32 au4D3toD7Rev[5];	/* padding fields */
 #endif
-	UINT_8 aucBuffer[0];
+	UINT_8 aucBuffer[];
 } INIT_WIFI_CMD_T, *P_INIT_WIFI_CMD_T;
 
 typedef struct _INIT_HIF_TX_HEADER_T {
@@ -262,7 +262,7 @@ typedef struct _INIT_WIFI_EVENT_T {
 	UINT_8 ucSeqNum;
 	UINT_8 aucReserved[2];
 
-	UINT_8 aucBuffer[0];
+	UINT_8 aucBuffer[];
 } INIT_WIFI_EVENT_T, *P_INIT_WIFI_EVENT_T;
 
 typedef struct _INIT_HIF_RX_HEADER_T {

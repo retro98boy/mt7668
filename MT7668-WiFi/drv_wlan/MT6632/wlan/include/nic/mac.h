@@ -1987,7 +1987,7 @@ typedef struct _IE_QUIET_T {
 typedef struct _IE_EXT_CAP_T {
 	UINT_8 ucId;
 	UINT_8 ucLength;
-	UINT_8 aucCapabilities[1];
+	UINT_8 aucCapabilities[];
 } __KAL_ATTRIB_PACKED__ IE_EXT_CAP_T, *P_EXT_CAP_T;
 
 /* 7.3.2.27 Extended Capabilities element */

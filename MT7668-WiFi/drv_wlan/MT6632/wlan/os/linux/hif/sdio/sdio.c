@@ -612,9 +612,9 @@ WLAN_STATUS glRegisterBus(probe_card pfProbe, remove_card pfRemove)
 VOID glUnregisterBus(remove_card pfRemove)
 {
 	ASSERT(pfRemove);
-	pfRemove();
 
 #if MTK_WCN_HIF_SDIO
+	pfRemove();
 	/* unregister MTK sdio client */
 	mtk_wcn_hif_sdio_client_unreg(&cltInfo);
 #else

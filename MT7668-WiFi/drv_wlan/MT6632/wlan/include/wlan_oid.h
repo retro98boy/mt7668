@@ -293,7 +293,7 @@ typedef enum _ENUM_PARAM_NETWORK_TYPE_T {
 
 typedef struct _PARAM_NETWORK_TYPE_LIST {
 	UINT_32 NumberOfItems;	/*!< At least 1 */
-	ENUM_PARAM_NETWORK_TYPE_T eNetworkType[1];
+	ENUM_PARAM_NETWORK_TYPE_T eNetworkType[];
 } PARAM_NETWORK_TYPE_LIST, *PPARAM_NETWORK_TYPE_LIST;
 
 typedef enum _ENUM_PARAM_PRIVACY_FILTER_T {
@@ -1565,7 +1565,7 @@ typedef struct _PARAM_NETWORK_ADDRESS_IP {
 typedef struct _PARAM_NETWORK_ADDRESS {
 	UINT_16 u2AddressLength;	/* length in bytes of Address[] in this */
 	UINT_16 u2AddressType;	/* type of this address (PARAM_PROTOCOL_ID_XXX above) */
-	UINT_8 aucAddress[1];	/* actually AddressLength bytes long */
+	UINT_8 aucAddress[];	/* actually AddressLength bytes long */
 } PARAM_NETWORK_ADDRESS, *P_PARAM_NETWORK_ADDRESS;
 
 /* The following is used with OID_GEN_NETWORK_LAYER_ADDRESSES to set network layer addresses on an interface */

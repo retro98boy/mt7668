@@ -199,7 +199,8 @@ static int btmtk_service_main_thread(void *data)
 		add_wait_queue(&thread->wait_q, &wait);
 		set_current_state(TASK_INTERRUPTIBLE);
 		if (kthread_should_stop()) {
-			pr_warn("main_thread: break from main thread\n");
+			set_current_state(TASK_RUNNING);
+			remove_wait_queue(&thread->wait_q, &wait);
 			break;
 		}
 
@@ -347,7 +348,7 @@ int btmtk_remove_card(struct btmtk_private *priv)
 	pr_info("%s begin\n", __func__);
 
 	pr_info("%s stop main_thread\n", __func__);
-	if (!PTR_ERR(priv->main_thread.task) && (priv->main_thread.thread_status))
+	if (!IS_ERR_OR_NULL(priv->main_thread.task))
 		kthread_stop(priv->main_thread.task);
 	pr_info("%s stop main_thread done\n", __func__);
 #ifdef CONFIG_DEBUG_FS
@@ -366,4 +367,3 @@ MODULE_AUTHOR("Mediatek Ltd.");
 MODULE_DESCRIPTION("Mediatek Bluetooth driver ver " VERSION);
 MODULE_VERSION(VERSION);
 MODULE_LICENSE("GPL v2");
-MODULE_IMPORT_NS(VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver);

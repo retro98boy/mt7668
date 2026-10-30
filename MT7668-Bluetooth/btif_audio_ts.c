@@ -1,3 +1,4 @@
+#include "btmtk_compat.h"
 #include "btif_audio_ts.h"
 
 #include <linux/device.h>
@@ -195,7 +196,7 @@ int btif_ts_init(void)
 	}
 
 	/* Register the device class */
-	g_dev_class = class_create(THIS_MODULE, CLASS_NAME);
+	g_dev_class = btmtk_class_create(CLASS_NAME);
 	if (IS_ERR(g_dev_class)) {
 		unregister_chrdev(g_major_num, DEVICE_NAME);
 		pr_alert("BTTS: failed to register device class\n");

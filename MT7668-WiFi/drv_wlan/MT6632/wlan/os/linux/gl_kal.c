@@ -79,10 +79,6 @@
 #endif
 #include <linux/ctype.h>
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0))
-MODULE_IMPORT_NS(VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver);
-#endif
-
 /*******************************************************************************
 *                              C O N S T A N T S
 ********************************************************************************
@@ -932,10 +928,7 @@ WLAN_STATUS kalRxIndicateOnePkt(IN P_GLUE_INFO_T prGlueInfo, IN PVOID pvPkt)
 		kal_skb_reset_mac_len(prSkb);
 	}
 
-	if (!in_interrupt())
-		netif_rx_ni(prSkb);	/* only in non-interrupt context */
-	else
-		netif_rx(prSkb);
+	kalNetifRx(prSkb);
 
 	return WLAN_STATUS_SUCCESS;
 }
@@ -1072,13 +1065,8 @@ kalIndicateStatusAndComplete(IN P_GLUE_INFO_T prGlueInfo, IN WLAN_STATUS eStatus
 
 				#if KERNEL_VERSION(4, 14, 0) <= CFG80211_VERSION_CODE
 				memset(&roam_info, 0, sizeof(struct cfg80211_roam_info));
-				#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 78)
-				roam_info.links[0].channel = prChannel;
-				roam_info.links[0].bssid = arBssid;
-				#else
-				roam_info.channel = prChannel;
-				roam_info.bssid = arBssid;
-				#endif
+				kalCfg80211RoamLink(&roam_info)->channel = prChannel;
+				kalCfg80211RoamLink(&roam_info)->bssid = arBssid;
 				roam_info.req_ie = prGlueInfo->aucReqIe;
 				roam_info.req_ie_len = prGlueInfo->u4ReqIeLength;
 				roam_info.resp_ie = prGlueInfo->aucRspIe;
@@ -3495,7 +3483,7 @@ BOOLEAN kalSetTimer(IN P_GLUE_INFO_T prGlueInfo, IN UINT_32 u4Interval)
 	if (HAL_IS_RX_DIRECT(prGlueInfo->prAdapter)) {
 		mod_timer(&prGlueInfo->tickfn, jiffies + u4Interval * HZ / MSEC_PER_SEC);
 	} else {
-		del_timer_sync(&(prGlueInfo->tickfn));
+		kalTimerDeleteSync(&(prGlueInfo->tickfn));
 
 		prGlueInfo->tickfn.expires = jiffies + u4Interval * HZ / MSEC_PER_SEC;
 		add_timer(&(prGlueInfo->tickfn));
@@ -3520,7 +3508,7 @@ BOOLEAN kalCancelTimer(IN P_GLUE_INFO_T prGlueInfo)
 
 	clear_bit(GLUE_FLAG_TIMEOUT_BIT, &prGlueInfo->ulFlag);
 
-	if (del_timer_sync(&(prGlueInfo->tickfn)) >= 0)
+	if (kalTimerDeleteSync(&(prGlueInfo->tickfn)) >= 0)
 		return TRUE;
 	else
 		return FALSE;
@@ -4610,9 +4598,9 @@ kalSetNetAddress(IN P_GLUE_INFO_T prGlueInfo,
 
 	/* 4 <1> Calculate buffer size */
 	/* IPv4 */
-	u4Len += (((sizeof(PARAM_NETWORK_ADDRESS) - 1) + IPV4_ADDR_LEN) * u4NumIPv4Addr);
+	u4Len += ((OFFSET_OF(PARAM_NETWORK_ADDRESS, aucAddress) + IPV4_ADDR_LEN) * u4NumIPv4Addr);
 	/* IPv6 */
-	u4Len += (((sizeof(PARAM_NETWORK_ADDRESS) - 1) + IPV6_ADDR_LEN) * u4NumIPv6Addr);
+	u4Len += ((OFFSET_OF(PARAM_NETWORK_ADDRESS, aucAddress) + IPV6_ADDR_LEN) * u4NumIPv6Addr);
 
 	/* 4 <2> Allocate buffer */
 	prParamNetAddrList = (P_PARAM_NETWORK_ADDRESS_LIST) kalMemAlloc(u4Len, VIR_MEM_TYPE);

@@ -220,6 +220,7 @@
 #include <uapi/linux/nl80211.h>
 #endif
 
+#include "gl_compat.h"
 #include "gl_typedef.h"
 #include "typedef.h"
 #include "queue.h"
@@ -979,18 +980,8 @@ void p2pSetMulticastListWorkQueueWrapper(P_GLUE_INFO_T prGlueInfo);
 
 P_GLUE_INFO_T wlanGetGlueInfo(VOID);
 
-#if KERNEL_VERSION(4, 19, 0) <= LINUX_VERSION_CODE
 u16 wlanSelectQueue(struct net_device *dev, struct sk_buff *skb,
-		struct net_device *nd, select_queue_fallback_t fallback);
-#elif KERNEL_VERSION(3, 14, 0) <= LINUX_VERSION_CODE
-u16 wlanSelectQueue(struct net_device *dev, struct sk_buff *skb,
-		    void *accel_priv, select_queue_fallback_t fallback);
-#elif KERNEL_VERSION(3, 13, 0) <= LINUX_VERSION_CODE
-u16 wlanSelectQueue(struct net_device *dev, struct sk_buff *skb,
-		    void *accel_priv);
-#else
-u16 wlanSelectQueue(struct net_device *dev, struct sk_buff *skb);
-#endif
+		    struct net_device *nd);
 
 VOID wlanDebugInit(VOID);
 

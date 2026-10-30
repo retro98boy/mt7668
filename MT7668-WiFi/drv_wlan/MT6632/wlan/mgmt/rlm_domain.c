@@ -2181,7 +2181,7 @@ VOID rlmDomainBuildCmdByDefaultTable(P_CMD_SET_COUNTRY_CHANNEL_POWER_LIMIT_T prC
 			     k += g_rRlmSubBand[i].ucInterval) {
 				if ((prPwrLimitSubBand->ucPwrUnit & BIT(i)) == 0) {
 					prCmdPwrLimit->ucCentralCh = k;
-					kalMemSet(&prCmdPwrLimit->cPwrLimitCCK,
+					kalMemSet(prCmdPwrLimit->acPwrLimit,
 						  prPwrLimitSubBand->aucPwrLimitSubBand[i], PWR_LIMIT_NUM);
 					prCmdPwrLimit++;
 					prCmd->ucNum++;
@@ -2213,7 +2213,7 @@ VOID rlmDomainBuildCmdByDefaultTable(P_CMD_SET_COUNTRY_CHANNEL_POWER_LIMIT_T prC
 	if (prPwrLimitSubBand->aucPwrLimitSubBand[POWER_LIMIT_2G4] < MAX_TX_POWER) {
 		for (i = BAND_2G4_LOWER_BOUND; i <= BAND_2G4_UPPER_BOUND; i++) {
 			prCmdPwrLimit->ucCentralCh = i;
-			kalMemSet(&prCmdPwrLimit->cPwrLimitCCK, prPwrLimitSubBand->aucPwrLimitSubBand[POWER_LIMIT_2G4],
+			kalMemSet(prCmdPwrLimit->acPwrLimit, prPwrLimitSubBand->aucPwrLimitSubBand[POWER_LIMIT_2G4],
 				  PWR_LIMIT_NUM);
 			prCmdPwrLimit++;
 			prCmd->ucNum++;
@@ -2224,7 +2224,7 @@ VOID rlmDomainBuildCmdByDefaultTable(P_CMD_SET_COUNTRY_CHANNEL_POWER_LIMIT_T prC
 		if (prCmd->u2CountryCode != COUNTRY_CODE_KR) {
 			for (i = UNII1_LOWER_BOUND; i <= UNII1_UPPER_BOUND; i += 2) {
 				prCmdPwrLimit->ucCentralCh = i;
-				kalMemSet(&prCmdPwrLimit->cPwrLimitCCK,
+				kalMemSet(prCmdPwrLimit->acPwrLimit,
 					  prPwrLimitSubBand->aucPwrLimitSubBand[POWER_LIMIT_UNII1], PWR_LIMIT_NUM);
 				prCmdPwrLimit++;
 				prCmd->ucNum++;
@@ -2254,7 +2254,7 @@ VOID rlmDomainBuildCmdByDefaultTable(P_CMD_SET_COUNTRY_CHANNEL_POWER_LIMIT_T prC
 	if (prPwrLimitSubBand->aucPwrLimitSubBand[POWER_LIMIT_UNII2A] < MAX_TX_POWER) {
 		for (i = UNII2A_LOWER_BOUND; i <= UNII2A_UPPER_BOUND; i += 2) {
 			prCmdPwrLimit->ucCentralCh = i;
-			kalMemSet(&prCmdPwrLimit->cPwrLimitCCK,
+			kalMemSet(prCmdPwrLimit->acPwrLimit,
 				  prPwrLimitSubBand->aucPwrLimitSubBand[POWER_LIMIT_UNII2A], PWR_LIMIT_NUM);
 			prCmdPwrLimit++;
 			prCmd->ucNum++;
@@ -2264,7 +2264,7 @@ VOID rlmDomainBuildCmdByDefaultTable(P_CMD_SET_COUNTRY_CHANNEL_POWER_LIMIT_T prC
 	if (prPwrLimitSubBand->aucPwrLimitSubBand[POWER_LIMIT_UNII2C] < MAX_TX_POWER) {
 		for (i = UNII2C_LOWER_BOUND; i <= UNII2C_UPPER_BOUND; i += 2) {
 			prCmdPwrLimit->ucCentralCh = i;
-			kalMemSet(&prCmdPwrLimit->cPwrLimitCCK,
+			kalMemSet(prCmdPwrLimit->acPwrLimit,
 				  prPwrLimitSubBand->aucPwrLimitSubBand[POWER_LIMIT_UNII2C], PWR_LIMIT_NUM);
 			prCmdPwrLimit++;
 			prCmd->ucNum++;
@@ -2273,7 +2273,7 @@ VOID rlmDomainBuildCmdByDefaultTable(P_CMD_SET_COUNTRY_CHANNEL_POWER_LIMIT_T prC
 	if (prPwrLimitSubBand->aucPwrLimitSubBand[POWER_LIMIT_UNII3] < MAX_TX_POWER) {
 		for (i = UNII3_LOWER_BOUND; i <= UNII3_UPPER_BOUND; i += 2) {
 			prCmdPwrLimit->ucCentralCh = i;
-			kalMemSet(&prCmdPwrLimit->cPwrLimitCCK,
+			kalMemSet(prCmdPwrLimit->acPwrLimit,
 				  prPwrLimitSubBand->aucPwrLimitSubBand[POWER_LIMIT_UNII3], PWR_LIMIT_NUM);
 			prCmdPwrLimit++;
 			prCmd->ucNum++;
@@ -2327,7 +2327,7 @@ VOID rlmDomainBuildCmdByConfigTable(P_ADAPTER_T prAdapter, P_CMD_SET_COUNTRY_CHA
 						 *  ch 1 = 22 dBm
 						 *  Cmd final setting -->  ch1 = 22dBm, ch12~14 = 20dBm
 						 */
-						kalMemCopy(&prCmdPwrLimit->cPwrLimitCCK,
+						kalMemCopy(prCmdPwrLimit->acPwrLimit,
 							   &g_rRlmPowerLimitConfiguration[i].aucPwrLimit,
 							   PWR_LIMIT_NUM);
 
@@ -2352,7 +2352,7 @@ VOID rlmDomainBuildCmdByConfigTable(P_ADAPTER_T prAdapter, P_CMD_SET_COUNTRY_CHA
 					 *  ch 36 = 22 dBm
 					 *  Cmd final setting -->  ch1~14 = 20dBm, ch36= 22dBm
 					 */
-					kalMemCopy(&prCmdPwrLimit->cPwrLimitCCK,
+					kalMemCopy(prCmdPwrLimit->acPwrLimit,
 						   &g_rRlmPowerLimitConfiguration[i].aucPwrLimit, PWR_LIMIT_NUM);
 					prCmd->ucNum++;
 
@@ -2373,7 +2373,7 @@ VOID rlmDomainBuildCmdByConfigTable(P_ADAPTER_T prAdapter, P_CMD_SET_COUNTRY_CHA
 				 *  Cmd final setting -->   ch36= 22dBm
 				 */
 				prCmdPwrLimit->ucCentralCh = g_rRlmPowerLimitConfiguration[i].ucCentralCh;
-				kalMemCopy(&prCmdPwrLimit->cPwrLimitCCK, &g_rRlmPowerLimitConfiguration[i].aucPwrLimit,
+				kalMemCopy(prCmdPwrLimit->acPwrLimit, &g_rRlmPowerLimitConfiguration[i].aucPwrLimit,
 					   PWR_LIMIT_NUM);
 				prCmd->ucNum++;
 

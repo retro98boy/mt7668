@@ -185,9 +185,7 @@ mtk_cfg80211_change_iface(struct wiphy *wiphy,
 int
 mtk_cfg80211_add_key(struct wiphy *wiphy,
 		     struct net_device *ndev,
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 137))
-		     int link_id,
-#endif		     
+		     MTK_CFG_KEY_LINK_PARAM
 		     u8 key_index, bool pairwise, const u8 *mac_addr, struct key_params *params)
 {
 	PARAM_KEY_T rKey;
@@ -346,9 +344,7 @@ mtk_cfg80211_add_key(struct wiphy *wiphy,
 int
 mtk_cfg80211_get_key(struct wiphy *wiphy,
 		     struct net_device *ndev,
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 137))
-		     int link_id,
-#endif			     
+		     MTK_CFG_KEY_LINK_PARAM
 		     u8 key_index,
 		     bool pairwise,
 		     const u8 *mac_addr, void *cookie, void (*callback) (void *cookie, struct key_params *)
@@ -379,9 +375,7 @@ mtk_cfg80211_get_key(struct wiphy *wiphy,
  */
 /*----------------------------------------------------------------------------*/
 int mtk_cfg80211_del_key(struct wiphy *wiphy, struct net_device *ndev, 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 137))
-		     int link_id,
-#endif	
+		     MTK_CFG_KEY_LINK_PARAM
 		     u8 key_index, bool pairwise, const u8 *mac_addr)
 {
 	P_GLUE_INFO_T prGlueInfo = NULL;
@@ -441,9 +435,7 @@ int mtk_cfg80211_del_key(struct wiphy *wiphy, struct net_device *ndev,
 /*----------------------------------------------------------------------------*/
 int
 mtk_cfg80211_set_default_key(struct wiphy *wiphy, struct net_device *ndev, 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 137))
-		     int link_id,
-#endif
+		     MTK_CFG_KEY_LINK_PARAM
 		     u8 key_index, bool unicast, bool multicast)
 {
 	P_GLUE_INFO_T prGlueInfo = NULL;
@@ -879,11 +871,7 @@ int mtk_cfg80211_scan(struct wiphy *wiphy, struct cfg80211_scan_request *request
 			rScanRequest.arChnlInfoList[i].u4CenterFreq1 = request->channels[i]->center_freq;
 			rScanRequest.arChnlInfoList[i].u4CenterFreq2 = 0;
 			rScanRequest.arChnlInfoList[i].u2PriChnlFreq = request->channels[i]->center_freq;
-#if KERNEL_VERSION(3, 12, 0) <= CFG80211_VERSION_CODE
-			rScanRequest.arChnlInfoList[i].ucChnlBw = request->scan_width;
-#else
-			rScanRequest.arChnlInfoList[i].ucChnlBw = 0;
-#endif
+			rScanRequest.arChnlInfoList[i].ucChnlBw = kalCfg80211ScanWidth(request);
 			rScanRequest.arChnlInfoList[i].ucChannelNum =
 				ieee80211_frequency_to_channel(request->channels[i]->center_freq);
 		}
@@ -2728,24 +2716,22 @@ mtk_cfg80211_change_station(struct wiphy *wiphy, struct net_device *ndev, const 
 
 	if (params == NULL)
 		return 0;
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 15, 78))
-	else if (params->supported_rates == NULL)
+	else if (kalCfg80211StationLink(params)->supported_rates == NULL)
 		return 0;
-#endif
+
 	/* init */
 	kalMemZero(&rCmdUpdate, sizeof(rCmdUpdate));
 	kalMemCopy(rCmdUpdate.aucPeerMac, mac, 6);
 
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 15, 78))
-	if (params->supported_rates != NULL) {
+	if (kalCfg80211StationLink(params)->supported_rates != NULL) {
 
-		u4Temp = params->supported_rates_len;
+		u4Temp = kalCfg80211StationLink(params)->supported_rates_len;
 		if (u4Temp > CMD_PEER_UPDATE_SUP_RATE_MAX)
 			u4Temp = CMD_PEER_UPDATE_SUP_RATE_MAX;
-		kalMemCopy(rCmdUpdate.aucSupRate, params->supported_rates, u4Temp);
+		kalMemCopy(rCmdUpdate.aucSupRate, kalCfg80211StationLink(params)->supported_rates, u4Temp);
 		rCmdUpdate.u2SupRateLen = u4Temp;
 	}
-#endif
+
 	/*
 	 * In supplicant, only recognize WLAN_EID_QOS 46, not 0xDD WMM
 	 * So force to support UAPSD here.
@@ -2764,28 +2750,27 @@ mtk_cfg80211_change_station(struct wiphy *wiphy, struct net_device *ndev, const 
 		rCmdUpdate.u2ExtCapLen = u4Temp;
 	}
 
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 15, 78))
-	if (params->ht_capa != NULL) {
+	if (kalCfg80211StationLink(params)->ht_capa != NULL) {
 
-		rCmdUpdate.rHtCap.u2CapInfo = params->ht_capa->cap_info;
-		rCmdUpdate.rHtCap.ucAmpduParamsInfo = params->ht_capa->ampdu_params_info;
-		rCmdUpdate.rHtCap.u2ExtHtCapInfo = params->ht_capa->extended_ht_cap_info;
-		rCmdUpdate.rHtCap.u4TxBfCapInfo = params->ht_capa->tx_BF_cap_info;
-		rCmdUpdate.rHtCap.ucAntennaSelInfo = params->ht_capa->antenna_selection_info;
+		rCmdUpdate.rHtCap.u2CapInfo = kalCfg80211StationLink(params)->ht_capa->cap_info;
+		rCmdUpdate.rHtCap.ucAmpduParamsInfo = kalCfg80211StationLink(params)->ht_capa->ampdu_params_info;
+		rCmdUpdate.rHtCap.u2ExtHtCapInfo = kalCfg80211StationLink(params)->ht_capa->extended_ht_cap_info;
+		rCmdUpdate.rHtCap.u4TxBfCapInfo = kalCfg80211StationLink(params)->ht_capa->tx_BF_cap_info;
+		rCmdUpdate.rHtCap.ucAntennaSelInfo = kalCfg80211StationLink(params)->ht_capa->antenna_selection_info;
 		kalMemCopy(rCmdUpdate.rHtCap.rMCS.arRxMask,
-			   params->ht_capa->mcs.rx_mask, sizeof(rCmdUpdate.rHtCap.rMCS.arRxMask));
+			   kalCfg80211StationLink(params)->ht_capa->mcs.rx_mask, sizeof(rCmdUpdate.rHtCap.rMCS.arRxMask));
 
-		rCmdUpdate.rHtCap.rMCS.u2RxHighest = params->ht_capa->mcs.rx_highest;
-		rCmdUpdate.rHtCap.rMCS.ucTxParams = params->ht_capa->mcs.tx_params;
+		rCmdUpdate.rHtCap.rMCS.u2RxHighest = kalCfg80211StationLink(params)->ht_capa->mcs.rx_highest;
+		rCmdUpdate.rHtCap.rMCS.ucTxParams = kalCfg80211StationLink(params)->ht_capa->mcs.tx_params;
 		rCmdUpdate.fgIsSupHt = TRUE;
 	}
 	/* vht */
 
-	if (params->vht_capa != NULL) {
+	if (kalCfg80211StationLink(params)->vht_capa != NULL) {
 		/* rCmdUpdate.rVHtCap */
 		/* rCmdUpdate.rVHtCap */
 	}
-#endif
+
 	/* update a TDLS peer record */
 	/* sanity check */
 	if ((params->sta_flags_set & BIT(NL80211_STA_FLAG_TDLS_PEER)))
@@ -3114,7 +3099,7 @@ int mtk_cfg80211_del_station(struct wiphy *wiphy, struct net_device *ndev, u8 *m
 #if KERNEL_VERSION(3, 18, 0) <= CFG80211_VERSION_CODE
 int
 mtk_cfg80211_tdls_mgmt(struct wiphy *wiphy, struct net_device *dev,
-		       const u8 *peer, u8 action_code, u8 dialog_token,
+		       const u8 *peer, MTK_CFG_TDLS_LINK_PARAM u8 action_code, u8 dialog_token,
 		       u16 status_code, u32 peer_capability,
 		       bool initiator, const u8 *buf, size_t len)
 {
