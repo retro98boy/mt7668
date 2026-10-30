@@ -4772,26 +4772,6 @@ BOOLEAN kalMetCheckProfilingPacket(IN P_GLUE_INFO_T prGlueInfo, IN P_NATIVE_PACK
 	return FALSE;
 }
 
-static unsigned long __read_mostly tracing_mark_write_addr;
-
-static int __mt_find_tracing_mark_write_symbol_fn(void *prData, const char *pcNameBuf,
-						   struct module *prModule, unsigned long ulAddress)
-{
-	if (strcmp(pcNameBuf, "tracing_mark_write") == 0) {
-		tracing_mark_write_addr = ulAddress;
-		return 1;
-	}
-	return 0;
-}
-
-#ifdef CONFIG_LIVEPATCH
-static inline void __mt_update_tracing_mark_write_addr(void)
-{
-	if (unlikely(tracing_mark_write_addr == 0))
-		kallsyms_on_each_symbol(__mt_find_tracing_mark_write_symbol_fn, NULL);
-}
-#endif
-
 VOID kalMetTagPacket(IN P_GLUE_INFO_T prGlueInfo, IN P_NATIVE_PACKET prPacket, IN ENUM_TX_PROFILING_TAG_T eTag)
 {
 	if (!prGlueInfo->fgMetProfilingEn)
@@ -4800,31 +4780,11 @@ VOID kalMetTagPacket(IN P_GLUE_INFO_T prGlueInfo, IN P_NATIVE_PACKET prPacket, I
 	switch (eTag) {
 	case TX_PROF_TAG_OS_TO_DRV:
 		if (kalMetCheckProfilingPacket(prGlueInfo, prPacket)) {
-			/* trace_printk("S|%d|%s|%d\n", current->pid, "WIFI-CHIP", GLUE_GET_PKT_IP_ID(prPacket)); */
-#ifdef CONFIG_LIVEPATCH
-			__mt_update_tracing_mark_write_addr();
-#endif
-#if 0				/* #ifdef CONFIG_TRACING */          /* #if CFG_MET_PACKET_TRACE_SUPPORT */
-			event_trace_printk(tracing_mark_write_addr, "S|%d|%s|%d\n", current->tgid, "WIFI-CHIP",
-					   GLUE_GET_PKT_IP_ID(prPacket));
-#endif
 			GLUE_SET_PKT_FLAG_PROF_MET(prPacket);
 		}
 		break;
 
 	case TX_PROF_TAG_DRV_TX_DONE:
-		if (GLUE_GET_PKT_IS_PROF_MET(prPacket)) {
-			/* trace_printk("F|%d|%s|%d\n", current->pid, "WIFI-CHIP", GLUE_GET_PKT_IP_ID(prPacket)); */
-#ifdef CONFIG_LIVEPATCH
-			__mt_update_tracing_mark_write_addr();
-#endif
-#if 0				/* #ifdef CONFIG_TRACING */          /* #if CFG_MET_PACKET_TRACE_SUPPORT */
-			event_trace_printk(tracing_mark_write_addr, "F|%d|%s|%d\n", current->tgid, "WIFI-CHIP",
-					   GLUE_GET_PKT_IP_ID(prPacket));
-#endif
-		}
-		break;
-
 	case TX_PROF_TAG_MAC_TX_DONE:
 		break;
 

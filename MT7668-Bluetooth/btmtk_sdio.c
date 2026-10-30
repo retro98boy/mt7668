@@ -30,6 +30,7 @@
 #include <linux/cdev.h>
 #include <linux/spinlock.h>
 #include <linux/kallsyms.h>
+#include <linux/kprobes.h>
 #include <linux/device.h>
 #include <linux/gpio/consumer.h>
 #include <linux/timekeeping.h>
