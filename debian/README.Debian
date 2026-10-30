@@ -1,32 +1,13 @@
 MT7668 DKMS package
 ===================
 
-Install the headers matching the target kernel before installing this package.
-Both wlan_mt76x8_sdio and bt_mt7668 are built from source by DKMS. No prebuilt
-modules, firmware, device-tree changes, modprobe configuration or modules-load
-configuration are installed. Module loading and board configuration remain under
-the administrator's control. Package upgrades do not forcibly unload drivers.
+Install the headers matching your kernel before installing this package.
+Provide the required firmware separately under /lib/firmware/.
 
-Firmware, including mt7668_patch_e*_hdr.bin for the vendor Bluetooth driver,
-must be supplied by the distribution or board image. The in-tree btmtksdio
-driver and bt_mt7668 must not bind to the same Bluetooth function; choose the
-driver before loading.
+Disable the kernel's btmtksdio driver as described in README.md, then load:
 
-Use scripts/build-deb.sh in a clean, committed Git checkout to build a package.
-It derives the package and DKMS version from the commit's UTC timestamp and
-12-character SHA, exporting the committed source without changing the checkout.
-A direct dpkg-buildpackage uses the checked-in changelog version instead.
+    modprobe bt_mt7668
+    modprobe wlan_mt76x8_sdio
 
-Git tags must exactly match scripts/version.sh output. The GitHub workflow
-builds artifacts for branches and pull requests and creates a draft release
-for an existing matching tag. It does not create or push tags.
-
-Package compatibility is checked on Debian 11/12/13 and Ubuntu LTS
-20.04/22.04/24.04/26.04 using the same deb and each system's APT and DKMS.
-These installation checks do not build modules. Native module compilation is
-also checked separately on Debian Bookworm; ARM64 base kernel releases 5.15
-through 7.3 have passed complete builds and modpost.
-
-Both control.tar and data.tar use xz compression for older dpkg compatibility.
-A compatible distribution still needs a supported kernel and matching headers:
-the stock kernels of Debian 11 and Ubuntu 20.04 are below the supported range.
+DKMS rebuilds both modules when a supported kernel and its headers are installed.
+See README.md for source, build and release information.
