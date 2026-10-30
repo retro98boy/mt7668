@@ -1,0 +1,17 @@
+Source: mt7668
+Section: kernel
+Priority: optional
+Maintainer: retro98boy <retro98boy@qq.com>
+Build-Depends: debhelper-compat (= 12), dh-dkms | dkms
+Standards-Version: 4.7.0
+Rules-Requires-Root: no
+
+Package: mt7668-dkms
+Architecture: all
+Depends: ${misc:Depends}, make, gcc, perl
+Description: MediaTek MT7668 SDIO WiFi and Bluetooth drivers (DKMS)
+ This package contains sources for the wlan_mt76x8_sdio and bt_mt7668
+ modules. DKMS builds the modules for installed kernels with matching
+ headers, supporting Linux 5.15 through 7.3.
+ .
+ Firmware and board-specific device-tree configuration are not included.

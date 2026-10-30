@@ -1,0 +1,10 @@
+/dist/
+*.o
+*.ko
+*.mod
+*.mod.c
+*.cmd
+*.o.*
+Module.symvers
+modules.order
+.tmp_versions/

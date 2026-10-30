@@ -1,0 +1,17 @@
+This package contains the MediaTek MT7668 SDIO drivers from
+https://github.com/CoreELEC/MT7668 with local compatibility changes.
+
+WiFi sources: Copyright MediaTek Inc., 2003-2017 and contributors.
+Individual source headers offer GPL version 2 or the BSD 3-clause license;
+see the notices in each file for the full terms and copyright holders.
+
+Bluetooth sources: Copyright MediaTek Inc., 2016-2017 and contributors.
+Distributed under the GNU General Public License, version 2.
+The complete license is included in MT7668-Bluetooth/COPYING.
+
+Debian packaging: Copyright 2026 retro98boy <retro98boy@qq.com>.
+Distributed under the GNU General Public License, version 2.
+On Debian systems the full GPL version 2 is available at
+/usr/share/common-licenses/GPL-2.
+
+Firmware files are not included in this Debian package.

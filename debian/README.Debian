@@ -1,0 +1,21 @@
+MT7668 DKMS package
+===================
+
+Install the headers matching the target kernel before installing this package.
+Both wlan_mt76x8_sdio and bt_mt7668 are built from source by DKMS. No prebuilt
+modules, firmware, device-tree changes, modprobe configuration or modules-load
+configuration are installed. Module loading and board configuration remain under
+the administrator's control. Package upgrades do not forcibly unload drivers.
+
+Firmware, including mt7668_patch_e*_hdr.bin for the vendor Bluetooth driver,
+must be supplied by the distribution or board image. The in-tree btmtksdio driver and bt_mt7668
+must not bind to the same Bluetooth function; choose the driver before loading.
+
+Use scripts/build-deb.sh in a clean, committed Git checkout to build a package.
+It derives the package and DKMS version from the commit's UTC timestamp and
+12-character SHA, exporting the committed source without changing the checkout.
+A direct dpkg-buildpackage uses the checked-in changelog version instead.
+
+Git tags must exactly match scripts/version.sh output. The GitHub workflow
+builds artifacts for branches and pull requests and creates a draft release
+for an existing matching tag. It does not create or push tags.
