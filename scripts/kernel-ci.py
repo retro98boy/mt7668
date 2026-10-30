@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Fetch pinned upstream kernels, build ARM64 modules, and report CI results."""
 import argparse
+from datetime import datetime, timezone
 import hashlib
 import json
 import os
 from pathlib import Path
+import platform
 import re
 import shutil
 import subprocess
@@ -43,6 +45,35 @@ def digest(path):
         for block in iter(lambda: stream.read(1024 * 1024), b''):
             value.update(block)
         return value.hexdigest()
+
+
+def kernel_key(version, source, kernel):
+    cross = os.environ.get('CROSS_COMPILE', 'aarch64-linux-gnu-')
+    tools = {}
+    for program in ['gcc', 'ld', 'make', cross + 'gcc', cross + 'ld']:
+        tools[program] = subprocess.check_output([program, '--version'], text=True)
+    settings = {
+        'source': entry(version), 'architecture': 'arm64',
+        'host_architecture': platform.machine(), 'tools': tools,
+        'source_directory': str(source.resolve()), 'kernel_directory': str(kernel.resolve()),
+        'config': digest(ROOT / 'ci/arm64.config'), 'builder': digest(Path(__file__)),
+        'flags': {name: os.environ.get(name, '') for name in
+                  ['KCFLAGS', 'KCPPFLAGS', 'HOSTCFLAGS', 'HOSTLDFLAGS', 'KBUILD_EXTRA_SYMBOLS']},
+    }
+    return hashlib.sha256(json.dumps(settings, sort_keys=True).encode()).hexdigest()
+
+
+def kernel_state(kernel, key):
+    return {'key': key, 'files': {name: digest(kernel / name)
+                                for name in ['.config', 'vmlinux', 'Module.symvers']}}
+
+
+def kernel_cache_valid(kernel, key):
+    try:
+        saved = json.loads((kernel / '.mt7668-kernel.json').read_text())
+        return saved == kernel_state(kernel, key)
+    except (OSError, ValueError):
+        return False
 
 
 def fetch(args):
@@ -94,7 +125,7 @@ def build(args):
     report = {
         'version': args.version, 'architecture': 'arm64',
         'driver_commit': None,
-        'source_verified': False, 'source_sha256': None,
+        'source_verified': False, 'source_sha256': None, 'kernel_cache_reused': False,
         'kernel': 'NOT RUN', 'modules': 'NOT RUN', 'result': 'FAIL',
     }
     phase = 'configuration'
@@ -109,12 +140,23 @@ def build(args):
         cross = os.environ.get('CROSS_COMPILE', 'aarch64-linux-gnu-')
         report['compiler'] = subprocess.check_output(
             [cross + 'gcc', '--version'], text=True).splitlines()[0]
+        key = kernel_key(args.version, source, kernel)
+        reused = kernel_cache_valid(kernel, key)
+        report.update(kernel_cache_key=key, kernel_cache_reused=reused)
+        if not reused and kernel.exists() and args.kernel_output is None:
+            shutil.rmtree(kernel)
         kernel.mkdir(parents=True, exist_ok=True)
+        timestamp = datetime.fromtimestamp((source / 'Makefile').stat().st_mtime,
+                                           timezone.utc).strftime('%a %b %d %H:%M:%S UTC %Y')
         make = ['make', '-C', str(source), f'O={kernel}', 'ARCH=arm64',
                 f'CROSS_COMPILE={cross}', 'LOCALVERSION=-mt7668-compat',
-                'KBUILD_MODPOST_WARN=']
-        run(make + [f'KCONFIG_ALLCONFIG={ROOT / "ci/arm64.config"}', 'allnoconfig'],
-            logs / 'config.log')
+                'KBUILD_MODPOST_WARN=', 'KBUILD_BUILD_USER=mt7668', 'KBUILD_BUILD_HOST=ci',
+                'KBUILD_BUILD_VERSION=1', f'KBUILD_BUILD_TIMESTAMP={timestamp}']
+        if reused:
+            (logs / 'config.log').write_text('Reusing verified kernel configuration and build.\n')
+        else:
+            run(make + [f'KCONFIG_ALLCONFIG={ROOT / "ci/arm64.config"}', 'allnoconfig'],
+                logs / 'config.log')
         config = (kernel / '.config').read_text()
         for symbol in ['MODULES', 'MODULE_UNLOAD', 'MODVERSIONS', 'CFG80211',
                        'CFG80211_WEXT', 'BT', 'MMC', 'GPIOLIB', 'FW_LOADER']:
@@ -130,6 +172,10 @@ def build(args):
         for name in ['vmlinux', 'Module.symvers']:
             if not (kernel / name).is_file() or not (kernel / name).stat().st_size:
                 raise ValueError(f'Kernel build did not produce {name}')
+        stamp = kernel / '.mt7668-kernel.json'
+        pending = stamp.with_suffix('.json.tmp')
+        pending.write_text(json.dumps(kernel_state(kernel, key), sort_keys=True) + '\n')
+        pending.replace(stamp)
         report.update(kernel='PASS', config_sha256=digest(kernel / '.config'),
                       symvers_sha256=digest(kernel / 'Module.symvers'))
         phase = 'modules'
@@ -149,7 +195,8 @@ def build(args):
         if re.search(r'(WARNING|ERROR): modpost:', (logs / 'modules.log').read_text()):
             raise ValueError('Driver modpost reported warnings or errors')
         artifacts = output / 'modules'
-        artifacts.mkdir(exist_ok=True)
+        if args.keep_modules:
+            artifacts.mkdir(exist_ok=True)
         report['module_details'] = {}
         for component, (directory, name) in COMPONENTS.items():
             module = driver / directory / (name + '.ko')
@@ -163,7 +210,8 @@ def build(args):
                 raise ValueError(f'{name} vermagic mismatch: {vermagic}')
             if subprocess.check_output(['modinfo', '-F', 'name', str(module)], text=True).strip() != name:
                 raise ValueError(f'Unexpected module name: {module}')
-            shutil.copy2(module, artifacts / module.name)
+            if args.keep_modules:
+                shutil.copy2(module, artifacts / module.name)
             report['module_details'][component] = {
                 'name': name, 'vermagic': vermagic, 'sha256': digest(module),
                 'compile_and_modpost': 'PASS',
@@ -218,6 +266,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest='command', required=True)
     commands.add_parser('matrix')
+    for command in ['cache-key', 'cache-ready']:
+        cache = commands.add_parser(command)
+        cache.add_argument('version')
+        cache.add_argument('source', type=Path)
+        cache.add_argument('kernel', type=Path)
     prepare = commands.add_parser('fetch')
     prepare.add_argument('version')
     prepare.add_argument('cache', type=Path)
@@ -227,14 +280,27 @@ def main():
     compile_kernel.add_argument('source', type=Path)
     compile_kernel.add_argument('output', type=Path)
     compile_kernel.add_argument('--kernel-output', type=Path,
-                                help='Reuse a local kernel build directory; CI uses a fresh one')
+                                help='Use a separate local kernel build directory')
     compile_kernel.add_argument('--jobs', type=int, default=2)
+    compile_kernel.add_argument('--keep-modules', action='store_true',
+                                help='Copy validated modules into the artifact directory')
     summary = commands.add_parser('summary')
     summary.add_argument('results', type=Path)
     summary.add_argument('versions', nargs='*')
     args = parser.parse_args()
     if args.command == 'matrix':
         print(json.dumps({'include': entries()}, separators=(',', ':')))
+    elif args.command in ['cache-key', 'cache-ready']:
+        key = kernel_key(args.version, args.source, args.kernel)
+        if args.command == 'cache-key':
+            print(key)
+        else:
+            try:
+                report = json.loads((args.kernel.parent / 'result.json').read_text())
+                ready = report.get('kernel') == 'PASS' and report.get('kernel_cache_key') == key
+            except (OSError, ValueError):
+                ready = False
+            print(str(ready and kernel_cache_valid(args.kernel, key)).lower())
     elif args.command == 'fetch':
         fetch(args)
     elif args.command == 'build':

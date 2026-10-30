@@ -19,7 +19,7 @@ Both modules passed complete ARM64 compilation and modpost against all **29 upst
 | 6.x | 6.0, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8, 6.9, 6.10, 6.11, 6.12, 6.13, 6.14, 6.15, 6.16, 6.17, 6.18, 6.19 |
 | 7.x | 7.0, 7.1, 7.2, 7.3 |
 
-These checks cover each upstream `.0` release, rather than every stable patch release or distribution backport. Every push now runs this complete kernel build matrix in GitHub Actions. Both modules also passed a native AMD64 DKMS build against Debian's `6.1.0-54-amd64` headers (Linux 6.1.190). The TDLS API backport introduced in Linux 6.1.189 is accounted for.
+These checks cover each upstream `.0` release, rather than every stable patch release or distribution backport. GitHub Actions now tests a reduced matrix covering the main API branches; the table above records the earlier full-range validation. Both modules also passed a native AMD64 DKMS build against Debian's `6.1.0-54-amd64` headers (Linux 6.1.190). The TDLS API backport introduced in Linux 6.1.189 is accounted for.
 
 On a TY1608 / S905X board, meson64 **6.18 and 7.3** were tested with concurrent dual-band WiFi and BLE scans, remain-on-channel operations, and unload/reload cycles. WiFi association/data transfer and Bluetooth pairing have not been validated. A successful build alone does not establish hardware support on another board.
 
@@ -129,17 +129,32 @@ A direct `dpkg-buildpackage -us -uc -b` uses the static version in `debian/chang
 
 ## Automatic kernel build matrix
 
-Every push (including tags), pull request, and manual run starts an independent job for each entry in [`ci/kernels.json`](ci/kernels.json). The initial list contains all 29 releases from 5.15 through 7.3.
+Every push (including tags), pull request, and manual run starts an independent job for each entry in [`ci/kernels.json`](ci/kernels.json). All triggers use the same six-version matrix:
+
+| Kernel | Main API coverage |
+| --- | --- |
+| 5.15 | Minimum supported kernel and older networking / SDIO interfaces |
+| 6.1 | Link-aware cfg80211 key operations and newer SDIO reset interface |
+| 6.6 | New class / TDLS interfaces and the intermediate channel-switch notification signature |
+| 6.12 | New beacon-update, radar / CAC and channel-switch interfaces |
+| 6.18 | Timer deletion, TX link and radio-index changes |
+| 7.3 | Current interface-object, remain-on-channel address and cookie interfaces |
+
+This samples the main API shapes rather than every transition or combination. Pushes, release tags and manual runs all use this list; there is no larger release-only matrix.
 
 Each job uses Debian Trixie's ARM64 cross-compiler and:
 
-1. Downloads the official kernel.org source archive and verifies the SHA256 pinned in the manifest. Only this compressed source archive is cached.
-2. Applies [`ci/arm64.config`](ci/arm64.config) using `allnoconfig`, enabling the driver's kernel dependencies and module versioning.
-3. Builds a fresh `vmlinux` and kernel modules to generate a complete `Module.symvers`.
-4. Builds both SDIO drivers through the repository's top-level Makefile. Compilation, linking, or modpost failures fail the job. Missing symbols are not downgraded to warnings.
+1. Downloads the official kernel.org source archive and verifies the SHA256 pinned in the manifest. The verified source archive is cached separately from the kernel build directory.
+2. Restores a kernel build cache keyed by source SHA256, configuration, architecture, source/output paths, build-script content and toolchain versions. The saved configuration, `vmlinux` and `Module.symvers` hashes are checked before reuse.
+3. On a cache miss, applies [`ci/arm64.config`](ci/arm64.config) using `allnoconfig` and builds `vmlinux` and kernel modules to generate a complete `Module.symvers`. On a valid cache hit, reuses the configuration and runs the kernel targets incrementally. Invalid managed build caches are discarded and rebuilt. Build identity and timestamps are fixed to avoid unnecessary timestamp-only relinks.
+4. Always copies fresh driver sources and rebuilds both SDIO drivers through the repository's top-level Makefile. Compilation, linking, or modpost failures fail the job. Missing symbols are not downgraded to warnings.
 5. Verifies both `.ko` files are ARM64 modules with the expected names and kernel vermagic.
 
-Actions displays one result per kernel and a combined **Kernel compatibility results** table. Each kernel uploads `result.json`, build logs, and successful driver modules as a `kernel-arm64-VERSION` artifact retained for 14 days. A failure does not cancel the other kernel jobs. Missing results fail the combined report. Draft releases require the kernel matrix and package checks to pass.
+Actions displays one result per kernel and a combined **Kernel compatibility results** table. `result.json` records whether the kernel cache was reused. Completed kernel builds can be cached even when a later driver build fails; failed or incomplete kernel builds are not cached. Cache-service failures fall back to compilation without hiding build failures.
+
+Each kernel uploads only `result.json` and logs as a `kernel-arm64-VERSION` artifact, retained for 7 days. Tag pushes and manual runs additionally save successfully validated drivers as a separate `modules-arm64-VERSION` artifact for 7 days. Normal pushes and pull requests do not upload driver modules or kernel binaries. Debian package artifacts remain available for installation checks and releases, also retained for 7 days.
+
+A failure does not cancel the other kernel jobs. Missing results fail the combined report. Draft releases require the same six-version kernel matrix and the package checks to pass.
 
 To extend the matrix, append a released kernel version and its archive SHA256 to `ci/kernels.json`. Obtain the checksum from kernel.org's `vMAJOR.x/sha256sums.asc`, selecting the exact `linux-VERSION.tar.xz` entry. The workflow expands the list automatically; no YAML matrix edits are needed. When extending the supported installation range, also update the kernel range in `dkms.conf` and the compatibility documentation after porting and validation.
 
@@ -147,11 +162,11 @@ Run the same build locally with the dependencies listed in the workflow:
 
 ```sh
 python3 scripts/kernel-ci.py fetch 7.3 ci-cache ci-sources/7.3
-python3 scripts/kernel-ci.py build 7.3 ci-sources/7.3 ci-results/7.3 --jobs 4
+python3 scripts/kernel-ci.py build 7.3 ci-sources/7.3 ci-results/7.3 --jobs 4 --keep-modules
 python3 scripts/kernel-ci.py summary ci-results 7.3
 ```
 
-For an existing local kernel source tree, run `build` directly with that source path. `--kernel-output /path/to/build` optionally reuses a local kernel build directory; CI always starts with a fresh build directory. Build results do not imply boot or hardware validation.
+For an existing local kernel source tree, run `build` directly with that source path. `--kernel-output /path/to/build` optionally uses a separate local kernel build directory. Repeating a build with the same inputs reuses a validated kernel build and recompiles the drivers. Omit `--keep-modules` when only results and logs are needed. Build results do not imply boot or hardware validation.
 
 ## Versions and GitHub releases
 
