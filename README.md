@@ -1,33 +1,57 @@
-# MT7668 SDIO WiFi / Bluetooth
+# MT7668 SDIO WiFi and Bluetooth
 
-MediaTek MT7668 的 Linux 树外 SDIO 驱动，包含两个模块：
+Out-of-tree Linux SDIO drivers for MediaTek MT7668. **The driver code was imported from [CoreELEC/MT7668](https://github.com/CoreELEC/MT7668.git)** and is maintained here with kernel compatibility updates and DKMS packaging.
 
-| 功能 | 模块 | 源码 |
+| Function | Module | Source directory |
 | --- | --- | --- |
 | WiFi | `wlan_mt76x8_sdio` | `MT7668-WiFi/drv_wlan/MT6632/wlan` |
 | Bluetooth | `bt_mt7668` | `MT7668-Bluetooth` |
 
-当前维护范围是 Linux **5.15–7.3**，内核 API 差异通过驱动内的版本宏处理。
-已完成该范围内全部 29 个主次版本基础发行版的 ARM64 编译检查，WiFi 和蓝牙均通过编译及 modpost；这不等同于所有版本的实机验证。
-TY1608 / S905X 已在 meson64 6.18、7.3 上进行实机调试。其他板卡仍需配置 SDIO、供电、GPIO 和固件。
+The top-level build and Debian package select the **SDIO** drivers.
 
-此打包入口选择 SDIO，不包含 USB 驱动构建。
+## Kernel compatibility and validation
 
-## 安装 deb
+Both modules passed complete ARM64 compilation and modpost against all **29 upstream base releases** listed below. Kernel API differences are handled by version macros in the driver.
 
-先安装与**目标内核完整版本**匹配的 headers，以及所需固件，再安装生成的包：
+| Kernel series | Releases with successful ARM64 builds |
+| --- | --- |
+| 5.x | 5.15, 5.16, 5.17, 5.18, 5.19 |
+| 6.x | 6.0, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8, 6.9, 6.10, 6.11, 6.12, 6.13, 6.14, 6.15, 6.16, 6.17, 6.18, 6.19 |
+| 7.x | 7.0, 7.1, 7.2, 7.3 |
+
+These are checks of each upstream `.0` release, rather than every stable patch release or distribution backport. Both modules also passed a native AMD64 DKMS build against Debian's `6.1.0-54-amd64` headers (Linux 6.1.190). The TDLS API backport introduced in Linux 6.1.189 is accounted for.
+
+On a TY1608 / S905X board, meson64 **6.18 and 7.3** were tested with concurrent dual-band WiFi and BLE scans, remain-on-channel operations, and unload/reload cycles. WiFi association/data transfer and Bluetooth pairing have not been validated. A successful build alone does not establish hardware support on another board.
+
+The maintained kernel range is **5.15 through 7.3**. DKMS automatically skips kernels outside this range. Matching headers and suitable kernel configuration remain required.
+
+## Debian / Ubuntu package compatibility
+
+The same `Architecture: all` DKMS source package is checked for installation, DKMS registration, and complete removal on:
+
+| Distribution | Package compatibility checks |
+| --- | --- |
+| Debian | 11 (Bullseye), 12 (Bookworm), 13 (Trixie) |
+| Ubuntu LTS | 20.04 (Focal), 22.04 (Jammy), 24.04 (Noble), 26.04 (Resolute) |
+
+These checks use each distribution's own `dpkg`, APT, and DKMS. GitHub Actions repeats this matrix for every build. The Bookworm build job additionally compiles and installs both modules against its distribution kernel headers before removing them.
+
+The package uses **xz for both control and data archives**, debhelper compatibility level 12, and DKMS configuration understood by older DKMS releases. Its sources have no build-host libc dependency. Firmware, prebuilt modules, device-tree changes, module blacklists, and automatic module-loading configuration are not included.
+
+Distribution compatibility and kernel compatibility are separate requirements. For example, the stock Linux 5.4 kernel in Ubuntu 20.04 and Linux 5.10 kernel in Debian 11 are outside the supported range: use a suitable newer kernel and its matching headers. A newer kernel may also require a newer compiler than the distribution's default compiler. Armbian systems need headers from the same Armbian kernel build.
+
+### Install
+
+Install the headers matching the **full target kernel release**, and provide the required firmware before installing the package:
 
 ```sh
 sudo apt install ./mt7668-dkms_*.deb
 dkms status
 ```
 
-Debian / Ubuntu / Armbian 的 headers 包名取决于使用的内核来源。自编译内核必须提供完整的外部模块构建环境，包括 `.config`、生成的头文件和 `Module.symvers`。
+Header package names depend on your kernel provider. A custom kernel needs a prepared external-module build tree, including `.config`, generated headers, and `Module.symvers`. Enable module support, MMC/SDIO, CFG80211, wireless extensions, Bluetooth, GPIO, and firmware loading.
 
-`mt7668-dkms` 是 `Architecture: all` 的**源码包**。DKMS 在目标机器上构建并安装两个模块，升级内核时自动重新构建。它不携带预编译 `.ko`，也不安装固件、DTS、模块黑名单或开机加载配置，不主动加载或强制卸载模块。
-DKMS 配置限制自动构建范围为 5.15–7.3；内核仍需启用模块、MMC/SDIO、CFG80211、无线扩展、Bluetooth、GPIO 和固件加载支持。
-
-确认 SDIO 功能已经枚举、固件齐全，并选择好蓝牙驱动后，可手动加载：
+Once the SDIO functions have enumerated and the Bluetooth driver has been selected:
 
 ```sh
 sudo modprobe bt_mt7668
@@ -37,99 +61,107 @@ bluetoothctl list
 sudo dmesg | tail -n 100
 ```
 
-树内 `btmtksdio` 和这里的 `bt_mt7668` 会匹配相同的蓝牙 SDIO 功能，只能选一个。若系统已绑定树内驱动，应先在系统配置中选定驱动，再重启验证；不要在 WiFi 工作时直接强制切换或卸载蓝牙驱动。
-本包使用树外蓝牙，不需要为了它再叠加树内 `btmtksdio` 的 MT7668 补丁。
+The in-tree `btmtksdio` driver and the vendor `bt_mt7668` driver match the same Bluetooth SDIO function. Select one in your system configuration before loading it. If the in-tree driver is already bound, configure the intended driver and reboot before testing; avoid switching Bluetooth drivers while WiFi is active. This package builds the vendor Bluetooth driver, so patches intended for in-tree `btmtksdio` are not needed for this configuration.
 
-卸载包：
+DKMS rebuilds the modules when a supported kernel and its headers are installed. Package management does not actively load or forcibly unload drivers.
+
+### Remove
 
 ```sh
 sudo apt purge mt7668-dkms
 ```
 
-DKMS 会删除安装的模块文件。已经加载的模块可在重启后退出；包管理脚本不会强制卸载正在工作的驱动。
+DKMS removes the installed module files. Already loaded modules can remain active until reboot.
 
-## 固件与板级配置
+## Firmware and board configuration
 
-仓库中的 WiFi 固件和配置位于 `MT7668-WiFi/7668_firmware/`。请按芯片修订版本和驱动日志安装所需文件到系统固件搜索路径，一般为 `/lib/firmware/`。
-WiFi 会请求 `WIFI_RAM_CODE_MT7668*`、`WIFI_RAM_CODE2_SDIO_MT7668*` 等文件；树外蓝牙会请求 `mt7668_patch_e*_hdr.bin`，同样可在该目录找到。
-树内 `btmtksdio` 使用的 `mediatek/mt7668pr2h.bin` 是另一套驱动的文件命名，不要与这里的请求名称混淆。
+WiFi firmware and configuration files are in `MT7668-WiFi/7668_firmware/`. Install the files appropriate for the chip revision in the system firmware search path, normally `/lib/firmware/`, following the filenames reported in the driver log:
 
-固件保持原有来源和授权，由板级镜像或系统提供，不随 `mt7668-dkms` deb 分发。
-设备树中还需要正确启用 SDIO 控制器、pinmux、供电及复位配置。安装驱动包不会修改启动分区或设备树。
+- WiFi requests files such as `WIFI_RAM_CODE_MT7668*` and `WIFI_RAM_CODE2_SDIO_MT7668*`.
+- The vendor Bluetooth driver requests `mt7668_patch_e*_hdr.bin`, also present in that directory.
+- The in-tree Bluetooth driver's `mediatek/mt7668pr2h.bin` naming belongs to that separate driver.
 
-## 从源码编译
+Firmware retains its original provenance and licensing and is supplied by the distribution or board image, separately from this DKMS deb.
 
-在仓库根目录直接构建两个模块：
+The board device tree must configure the SDIO controller, pinmux, power supplies, and reset signals correctly. Installing the package does not modify the device tree or boot partition.
+
+## Build the modules
+
+Build both modules from the repository root:
 
 ```sh
 make KDIR=/lib/modules/$(uname -r)/build -j2
 make KDIR=/lib/modules/$(uname -r)/build clean
 ```
 
-指定 `KDIR` 可以为尚未启动的内核编译。ARM64 交叉编译示例：
+Use `KDIR` to select another prepared kernel build tree. For ARM64 cross-compilation:
 
 ```sh
 make KDIR=/path/to/prepared/kernel/build ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j2
 ```
 
-产物分别为：
+Outputs:
 
 - `MT7668-WiFi/drv_wlan/MT6632/wlan/wlan_mt76x8_sdio.ko`
 - `MT7668-Bluetooth/bt_mt7668.ko`
 
-## 构建 Debian 包
+## Build the Debian package
 
-在 Debian / Ubuntu 环境安装打包依赖：
-
-```sh
-sudo apt install build-essential debhelper dkms dh-dkms git
-bash scripts/build-deb.sh
-```
-
-脚本要求工作区干净，所有需要打包的修改已提交；默认输出到被 Git 忽略的 `dist/`，也可传入输出目录：
+Install the packaging tools on Debian / Ubuntu:
 
 ```sh
-bash scripts/build-deb.sh /path/to/output
+sudo apt install build-essential debhelper dkms git
 ```
 
-脚本通过 `git archive` 导出 HEAD，在临时目录生成 changelog 并构建，保留原工作区。输出 `.deb`、`.buildinfo`、`.changes` 和 `SHA256SUMS`。
-直接运行 `dpkg-buildpackage -us -uc -b` 也能打包，但会使用 `debian/changelog` 的静态版本；日常构建和发布使用上述脚本。
+If `dh_dkms` is not installed, also install `dh-dkms`. Older releases include this helper in `dkms`; newer releases provide it as a separate package.
 
-## 版本与发布
+From a clean checkout with all intended changes committed:
 
-统一版本来自提交的 UTC 时间和 12 位 Git SHA：
+```sh
+./scripts/build-deb.sh
+# Optional output directory:
+./scripts/build-deb.sh /path/to/output
+```
+
+The script exports HEAD with `git archive` and generates its changelog in a temporary directory, leaving the checkout intact. Outputs are a `.deb`, `.buildinfo`, `.changes`, and `SHA256SUMS`, normally in the ignored `dist/` directory.
+
+A direct `dpkg-buildpackage -us -uc -b` uses the static version in `debian/changelog`. Use `scripts/build-deb.sh` for normal snapshot builds and releases.
+
+## Versions and GitHub releases
+
+The package and DKMS version come from the source commit's UTC committer timestamp and 12-character SHA:
 
 ```text
 YYYY.MM.DD.HHMMSS+git0123456789ab
 ```
 
 ```sh
-bash scripts/version.sh          # HEAD
-bash scripts/version.sh <commit> # 指定提交或 tag
+./scripts/version.sh
+./scripts/version.sh <commit-or-tag>
 ```
 
-同一提交生成相同版本，deb 版本和 DKMS 版本一致，无须手动维护第二份驱动版本变量。
-时间取自提交的 committer timestamp；发布提交需要时间递增，同一秒或回退时间的提交不能保证 Debian 版本排序与提交顺序一致。
+The same commit produces the same version. Keep release commit timestamps increasing: equal or decreasing timestamps do not guarantee Debian version ordering follows commit order.
 
-GitHub Actions 配置位于 `.github/workflows/build-deb.yml`：
+`.github/workflows/build-deb.yml` handles:
 
-- 分支 push、PR 和手动运行：构建 deb，在 Debian Bookworm 容器内用发行版 headers 验证两个模块的 DKMS 构建、安装及卸载，上传 artifact。
-- 数字开头的 tag push：先要求 tag 精确等于生成版本，通过同样检查后创建带 deb 和校验文件的 **draft release**。
-- 工作流不自动打 tag，不发布正式 release。
+- Branch pushes, pull requests, and manual runs: build the deb, validate a native DKMS build and the distribution installation matrix, and upload artifacts.
+- Numeric-leading tag pushes: require the tag to exactly match the generated version, pass the same checks, and create a **draft release** containing the deb and checksums.
 
-准备发布时，先提交修改，再给该提交打版本 tag 并推送：
+After committing a release, create and push its tag:
 
 ```sh
-version=$(bash scripts/version.sh)
+version=$(./scripts/version.sh)
 git tag "$version"
 git push origin HEAD
 git push origin "$version"
 ```
 
-到 GitHub 检查 Actions 和 draft release，确认后手动发布。
+Review the Actions results and draft release on GitHub before publishing it. The workflow does not create tags or publish releases automatically.
 
-## 来源与许可
+## Provenance and licenses
 
-基于 MediaTek 驱动及 PS4 / CoreELEC 社区移植工作。WiFi 各文件保留原有 GPL-2.0 / BSD 双许可声明；Bluetooth 使用 GPL-2.0，见 `MT7668-Bluetooth/LICENSE` 和 `COPYING`。
+Imported upstream repository: **https://github.com/CoreELEC/MT7668.git**.
 
-感谢 novice4321、Reo Au In、[Khadas](https://github.com/khadas/android_hardware_wifi_mtk_drivers_mt7668/tree/Nougat)、[noob404 的 PS4 移植](https://github.com/noob404yt/mt7668-wifi-bt)以及 CoreELEC 社区。打包方式参考本地 `swt6621s` 项目。
+The original MediaTek drivers and the PS4 / CoreELEC community ports retain their source-file copyright and license notices. WiFi files carry their original GPL-2.0 / BSD license choices; Bluetooth uses GPL-2.0, as documented in `MT7668-Bluetooth/LICENSE` and `COPYING`.
+
+Thanks to novice4321, Reo Au In, [Khadas](https://github.com/khadas/android_hardware_wifi_mtk_drivers_mt7668/tree/Nougat), [noob404's PS4 port](https://github.com/noob404yt/mt7668-wifi-bt), and the CoreELEC community. Packaging was modeled on the `swt6621s` project.

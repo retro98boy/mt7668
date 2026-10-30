@@ -89,9 +89,65 @@ jobs:
           path: dist/
           if-no-files-found: error
 
+  install-compatibility:
+    name: Install on ${{ matrix.image }}
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      actions: read
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - debian:bullseye-slim
+          - debian:bookworm-slim
+          - debian:trixie-slim
+          - ubuntu:20.04
+          - ubuntu:22.04
+          - ubuntu:24.04
+          - ubuntu:26.04
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_VERSION: ${{ needs.build.outputs.version }}
+    steps:
+      - name: Check out installation test
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Download the shared package
+        run: |
+          gh run download "$GITHUB_RUN_ID" \
+            --repo "$GITHUB_REPOSITORY" \
+            --name "mt7668-dkms-$RELEASE_VERSION" --dir dist
+          (cd dist && sha256sum -c SHA256SUMS)
+
+      - name: Verify package compatibility
+        env:
+          TEST_IMAGE: ${{ matrix.image }}
+        run: |
+          docker run --rm \
+            -v "$PWD/dist:/packages:ro" -v "$PWD/scripts:/tests:ro" \
+            "$TEST_IMAGE" bash -ec '
+              export DEBIAN_FRONTEND=noninteractive
+              . /etc/os-release
+              if [ "$ID" = debian ] && [ "$VERSION_ID" = 11 ]; then
+                printf "%s\n" \
+                  "deb [check-valid-until=no] http://archive.debian.org/debian bullseye main" \
+                  "deb [check-valid-until=no] http://archive.debian.org/debian-security bullseye-security main" \
+                  > /etc/apt/sources.list
+              fi
+              apt-get update
+              apt-get install -y --no-install-recommends dkms make gcc perl xz-utils
+              bash /tests/test-deb-install.sh /packages/*.deb
+            '
+
   release:
     if: github.event_name == 'push' && github.ref_type == 'tag'
-    needs: build
+    needs: [build, install-compatibility]
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
