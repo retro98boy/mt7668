@@ -6,13 +6,14 @@ See the [CI matrix](ci/kernels.json) for tested kernel versions.
 
 ## Install
 
-Install the headers matching your running kernel and the required firmware, then install the package:
+Install the headers matching your running kernel, then install both packages:
 
 ```sh
-sudo apt install ./mt7668-dkms_*.deb
+sudo apt install ./mt7668-dkms_*.deb ./mt7668-firmware_*.deb
 ```
 
 DKMS rebuilds both modules when a supported kernel and its headers are installed.
+The two packages can be installed independently; neither depends on or recommends the other.
 
 Disable the kernel's `btmtksdio` driver as described below, then load the drivers:
 
@@ -24,7 +25,7 @@ sudo modprobe wlan_mt76x8_sdio
 To remove:
 
 ```sh
-sudo apt purge mt7668-dkms
+sudo apt purge mt7668-dkms mt7668-firmware
 ```
 
 ## Disable the kernel Bluetooth driver
@@ -43,7 +44,9 @@ For `CONFIG_BT_MTKSDIO=y`, a module blacklist has no effect. Rebuild the kernel 
 
 ## Firmware
 
-WiFi and Bluetooth firmware and configuration files are in [`MT7668-WiFi/7668_firmware/`](MT7668-WiFi/7668_firmware/). Install the files required by your chip revision under `/lib/firmware/`, using the filenames requested in the kernel log. Bluetooth uses `mt7668_patch_e1_hdr.bin` or `mt7668_patch_e2_hdr.bin`. Firmware is not included in the Debian package.
+The `mt7668-firmware` package installs this repository's SDIO WiFi and Bluetooth firmware and default configuration from [`MT7668-WiFi/7668_firmware/`](MT7668-WiFi/7668_firmware/) under `/lib/firmware/`.
+
+Testing on a **Tianyi TY1608** with an **MT7668RSN** module found WiFi and Bluetooth signal quality acceptable. Compatible firmware optimized by your own device's manufacturer may give better results. Place local overrides under `/lib/firmware/updates/` using the filenames requested by the drivers.
 
 ## Build
 
@@ -69,7 +72,7 @@ Build from a clean checkout with your changes committed:
 ./scripts/build-deb.sh
 ```
 
-Packages and checksums are written to `dist/`.
+The `mt7668-dkms` and `mt7668-firmware` packages and their checksums are written to `dist/`.
 
 ## Versions and releases
 

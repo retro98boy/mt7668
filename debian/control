@@ -14,4 +14,13 @@ Description: MediaTek MT7668 SDIO WiFi and Bluetooth drivers (DKMS)
  modules. DKMS builds the modules for installed kernels with matching
  headers, supporting Linux 5.15 through 7.3.
  .
- Firmware and board-specific device-tree configuration are not included.
+ Firmware is available in mt7668-firmware. Board-specific device-tree
+ configuration is not included.
+
+Package: mt7668-firmware
+Section: non-free/kernel
+Architecture: all
+Depends: ${misc:Depends}
+Description: MediaTek MT7668 SDIO WiFi and Bluetooth firmware
+ This package contains firmware and default configuration files for the
+ wlan_mt76x8_sdio and bt_mt7668 drivers, imported from CoreELEC/MT7668.

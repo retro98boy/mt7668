@@ -223,12 +223,12 @@ jobs:
             exit 1
           fi
 
-      - name: Build Debian package
+      - name: Build Debian packages
         id: package
         shell: bash
         run: |
           bash scripts/build-deb.sh
-          version=$(dpkg-deb -f dist/*.deb Version)
+          version=$(bash scripts/version.sh)
           printf 'version=%s\n' "$version" >> "$GITHUB_OUTPUT"
           release=false
           if [ "$GITHUB_REF_TYPE" = tag ] && [ "$GITHUB_REF_NAME" = "$version" ]; then
@@ -244,13 +244,22 @@ jobs:
           test -e "/lib/modules/$kernel/build/Makefile"
           mkdir -p /etc/dkms/framework.conf.d
           printf 'parallel_jobs=2\n' > /etc/dkms/framework.conf.d/mt7668-ci.conf
-          apt-get install -y ./dist/*.deb
+          apt-get install -y ./dist/mt7668-dkms_*.deb
+          if dpkg-query -W -f='${Status}' mt7668-firmware 2>/dev/null | grep -q ' installed$'; then
+            echo 'Installing the DKMS package unexpectedly installed firmware.' >&2
+            exit 1
+          fi
           dkms autoinstall -k "$kernel"
           dkms status -m mt7668 -v "$version" -k "$kernel" | grep ': installed$'
           for module in wlan_mt76x8_sdio bt_mt7668; do
             test "$(modinfo -k "$kernel" -F name "$module")" = "$module"
             test "$(modinfo -k "$kernel" -F vermagic "$module" | cut -d ' ' -f 1)" = "$kernel"
           done
+          apt-get install -y ./dist/mt7668-firmware_*.deb
+          test "$(dpkg-query -W -f='${Version}' mt7668-firmware)" = "$version"
+          while read -r source destination; do
+            cmp "$source" "/$destination/${source##*/}"
+          done < debian/mt7668-firmware.install
           apt-get purge -y mt7668-dkms
           test -z "$(dkms status -m mt7668 -v "$version")"
           test ! -e "/usr/src/mt7668-$version"
@@ -260,11 +269,16 @@ jobs:
               exit 1
             fi
           done
+          test -f /lib/firmware/mt7668_patch_e2_hdr.bin
+          apt-get purge -y mt7668-firmware
+          while read -r source destination; do
+            test ! -e "/$destination/${source##*/}"
+          done < debian/mt7668-firmware.install
 
-      - name: Upload package
+      - name: Upload packages
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: mt7668-dkms-${{ steps.package.outputs.version }}
+          name: mt7668-packages-${{ steps.package.outputs.version }}
           path: dist/
           if-no-files-found: error
           retention-days: 7
@@ -298,11 +312,11 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
 
-      - name: Download the shared package
+      - name: Download the shared packages
         run: |
           gh run download "$GITHUB_RUN_ID" \
             --repo "$GITHUB_REPOSITORY" \
-            --name "mt7668-dkms-$RELEASE_VERSION" --dir dist
+            --name "mt7668-packages-$RELEASE_VERSION" --dir dist
           (cd dist && sha256sum -c SHA256SUMS)
 
       - name: Verify package compatibility
@@ -337,17 +351,18 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       RELEASE_VERSION: ${{ needs.build.outputs.version }}
     steps:
-      - name: Download package
+      - name: Download packages
         run: |
           gh run download "$GITHUB_RUN_ID" \
             --repo "$GITHUB_REPOSITORY" \
-            --name "mt7668-dkms-$RELEASE_VERSION" --dir dist
+            --name "mt7668-packages-$RELEASE_VERSION" --dir dist
 
       - name: Create draft release for existing tag
         run: |
           test "$GITHUB_REF_NAME" = "$RELEASE_VERSION"
           (cd dist && sha256sum -c SHA256SUMS)
           gh release create "$GITHUB_REF_NAME" \
-            "dist/mt7668-dkms_${RELEASE_VERSION}_all.deb" dist/SHA256SUMS \
+            "dist/mt7668-dkms_${RELEASE_VERSION}_all.deb" \
+            "dist/mt7668-firmware_${RELEASE_VERSION}_all.deb" dist/SHA256SUMS \
             --repo "$GITHUB_REPOSITORY" --verify-tag --draft \
             --title "$GITHUB_REF_NAME" --generate-notes

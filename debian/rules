@@ -12,12 +12,13 @@ override_dh_auto_test:
 override_dh_auto_clean:
 
 override_dh_auto_install:
-	dh_install Makefile usr/src/mt7668-$(DEB_VERSION_UPSTREAM)
-	dh_install -Xutil MT7668-Bluetooth usr/src/mt7668-$(DEB_VERSION_UPSTREAM)
-	dh_install MT7668-WiFi/drv_wlan/MT6632/wlan usr/src/mt7668-$(DEB_VERSION_UPSTREAM)/MT7668-WiFi/drv_wlan/MT6632
+	dh_install -pmt7668-dkms Makefile usr/src/mt7668-$(DEB_VERSION_UPSTREAM)
+	dh_install -pmt7668-dkms -Xutil MT7668-Bluetooth usr/src/mt7668-$(DEB_VERSION_UPSTREAM)
+	dh_install -pmt7668-dkms MT7668-WiFi/drv_wlan/MT6632/wlan usr/src/mt7668-$(DEB_VERSION_UPSTREAM)/MT7668-WiFi/drv_wlan/MT6632
+	dh_install -pmt7668-firmware
 
 override_dh_dkms:
-	dh_dkms -V $(DEB_VERSION_UPSTREAM) -- dkms.conf
+	dh_dkms -pmt7668-dkms -V $(DEB_VERSION_UPSTREAM) -- dkms.conf
 
 override_dh_builddeb:
 	dh_builddeb -- -Zxz --uniform-compression

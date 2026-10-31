@@ -44,6 +44,8 @@ mkdir -p "$output_dir"
 cp "$build_dir"/*.deb "$build_dir"/*.buildinfo "$build_dir"/*.changes "$output_dir/"
 (
     cd "$output_dir"
-    sha256sum "mt7668-dkms_${version}_all.deb" > SHA256SUMS
+    sha256sum "mt7668-dkms_${version}_all.deb" \
+        "mt7668-firmware_${version}_all.deb" > SHA256SUMS
 )
 printf 'Built %s/mt7668-dkms_%s_all.deb\n' "$output_dir" "$version"
+printf 'Built %s/mt7668-firmware_%s_all.deb\n' "$output_dir" "$version"

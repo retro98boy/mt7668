@@ -2,7 +2,9 @@ MT7668 DKMS package
 ===================
 
 Install the headers matching your kernel before installing this package.
-Provide the required firmware separately under /lib/firmware/.
+Install mt7668-firmware for this repository's firmware and default configuration.
+Compatible firmware tuned by your device manufacturer may give better results.
+Local overrides can be placed under /lib/firmware/updates/.
 
 Disable the kernel's btmtksdio driver as described in README.md, then load:
 

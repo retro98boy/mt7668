@@ -14,4 +14,7 @@ Distributed under the GNU General Public License, version 2.
 On Debian systems the full GPL version 2 is available at
 /usr/share/common-licenses/GPL-2.
 
-Firmware files are not included in this Debian package.
+Firmware binaries and default configuration files in mt7668-firmware are
+imported unchanged from MT7668-WiFi/7668_firmware in CoreELEC/MT7668.
+No separate firmware license notice was supplied in that directory.
+The driver source license notices above do not establish a firmware license.

@@ -1,0 +1,7 @@
+MT7668-WiFi/7668_firmware/WIFI_RAM_CODE_MT7668.bin lib/firmware
+MT7668-WiFi/7668_firmware/WIFI_RAM_CODE2_SDIO_MT7668.bin lib/firmware
+MT7668-WiFi/7668_firmware/mt7668_patch_e0_hdr.bin lib/firmware
+MT7668-WiFi/7668_firmware/mt7668_patch_e1_hdr.bin lib/firmware
+MT7668-WiFi/7668_firmware/mt7668_patch_e2_hdr.bin lib/firmware
+MT7668-WiFi/7668_firmware/TxPwrLimit_MT76x8.dat lib/firmware
+MT7668-WiFi/7668_firmware/wifi.cfg lib/firmware
